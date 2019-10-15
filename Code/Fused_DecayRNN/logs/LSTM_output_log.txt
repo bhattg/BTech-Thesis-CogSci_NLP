@@ -4,3 +4,25 @@ cpu to gpu
 epoch : 0
 1000
 2000
+3000
+Processing test set
+157721, 7000
+Accuracy : 3577
+4000
+5000
+6000
+Processing test set
+157721, 7000
+Accuracy : 3842
+7000
+8000
+9000
+Processing test set
+157721, 7000
+Accuracy : 4063
+10000
+11000
+12000
+Processing test set
+157721, 7000
+Accuracy : 4258

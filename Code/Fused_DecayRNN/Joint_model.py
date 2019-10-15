@@ -238,7 +238,7 @@ class JOINT_MODEL(object):
                     self.log_LSTM(index+1)
                     if ((index+1) % 3000 == 0):
                         acc_lstm = self.results_lstm()
-                        acc = self.results()
+                        acc = self.results_decay()
                         # result_dict = self.result_demarcated()
                         if (acc >= max_acc) :
                             model_name = model_prefix + '.pkl'
