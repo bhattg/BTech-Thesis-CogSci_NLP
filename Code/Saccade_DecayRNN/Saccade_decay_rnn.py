@@ -1,4 +1,5 @@
 import torch
+import sys
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
@@ -64,7 +65,7 @@ class LstmModule(nn.Module):
 
 
 
-    def forward(self, input_, rgate_val,  hx = None):
+    def forward(self, input_,rgate_val ,hx = None):
         """
         An Elman RNN cell with tanh or ReLU non-linearity.
         h' = tanh/relu(w_{ih} x + b_{ih}  +  w_{hh} h + b_{hh})
@@ -141,7 +142,6 @@ class LSTM(nn.Module):
 
     def forward(self, input_, max_time = 50) :
 
-
         x = input_
         m = 1
         x = self.embedding_layer(x)
@@ -171,7 +171,7 @@ class LSTM(nn.Module):
             for time in range(max_time):
                 # print(time)
                 # inputx = torch.tensor(input_[time], requires_grad = False)#.to(device)
-                state = cell(input_ = self.embedding_layer(input_[time]), rgate_val=rgate_val hx = state)
+                state = cell(input_ = self.embedding_layer(input_[time]), rgate_val=rgate_val ,hx = state)
                 all_hidden.append(state.tolist())
                 out = self.linear(state)
                 all_outputs.append(out.tolist())
