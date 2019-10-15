@@ -1,0 +1,10 @@
+Creating model
+vocab size : 10178
+Training
+Creating model
+vocab size : 10178
+157721
+cpu to gpu
+epoch : 0
+1000
+2000
