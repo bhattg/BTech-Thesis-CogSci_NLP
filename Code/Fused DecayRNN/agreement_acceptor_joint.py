@@ -294,7 +294,7 @@ class RNNAcceptor(JOINT_MODEL):
 
         with torch.no_grad():
             for index in range(len(x_test)) :
-                pred, hidden, output = self.model_lstm(x_test[index])
+                pred, hidden, output, allf, alli = self.model_lstm(x_test[index])
                 if (pred[0][0] > pred[0][1]) :
                     predicted.append([0])
                 else :
