@@ -102,6 +102,16 @@ class DECAY_RNN_Model(object):
         with open('logs/' + self.output_filename, 'a') as file:
             file.write(str(message) + '\n')
 
+    def log_testing_results(self, message):
+        with open('logs/testing_result_' + self.output_filename, 'a') as file:
+            file.write(str(message) + '\n')
+
+
+    def log_per_ex_alpha(self, message):
+        with open('logs/per_input_alpha_' + self.output_filename, 'a') as file:
+            file.write(str(message) + '\n')
+
+
     def log_grad(self, message):
         with open('logs/grad_' + self.output_filename, 'a') as file:
             file.write(message + '\n')

@@ -26,6 +26,7 @@ class LstmModule(nn.Module):
 
         input_size = input_units
         hidden_size = hidden_units
+        self.rgate = None
         self.sigmoid = nn.Sigmoid()
         self.tanh = nn.Tanh()
         self.relu = nn.ReLU()
@@ -135,6 +136,14 @@ class LSTM(nn.Module):
     def get_cell(self, layer):
         return getattr(self, 'cell_{}'.format(layer))
 
+    # def get_rgate_val(self):
+    #     rgate_list=[]  # A list that contains the rgate values layer wise 
+    #     for layer in range(self.num_layers):
+    #         cell = self.get_cell(layer)
+    #         rgate_list.append(cell.rgate)
+    #     return rgate_list
+
+
     def reset_parameters(self):
         for layer in range(self.num_layers):
             cell = self.get_cell(layer)
@@ -180,3 +189,5 @@ class LSTM(nn.Module):
         softmax_out = self.linear(hlast)
         softmax_out = torch.stack([softmax_out], 0)#.to(cpu)
         return softmax_out, all_hidden, all_outputs
+
+

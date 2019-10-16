@@ -305,7 +305,7 @@ class JOINT_MODEL(object):
 
             fffstart = 0
 
-            acc = self.results()
+            acc = self.results_decay()
             if (acc > max_acc) :
                 model_name = model_prefix + '.pkl'
                 torch.save(self.model_decay, model_name)

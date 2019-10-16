@@ -92,6 +92,7 @@ class RNNAcceptor(DECAY_RNN_Model):
         self.dump_dict[key].append((string, y, p))
 
     def test_model(self):
+
         # create the batched examples of data
         print("Entered testing phase")
         result_dict = {}
@@ -109,6 +110,9 @@ class RNNAcceptor(DECAY_RNN_Model):
                     y_test = np.asarray(y_test)
                     x_test = torch.tensor(x_test, dtype=torch.long)
                     pred, _, _ = self.model(x_test)
+                    # we can get the value of alpha now. 
+                    self.log_per_ex_alpha(str(self.model.cell_0.rgate))
+
                     if (pred[0][0] > pred[0][1]) :
                         predicted = 0
                     else :
@@ -120,7 +124,7 @@ class RNNAcceptor(DECAY_RNN_Model):
                 result_dict[keys] = (accuracy/total_example, total_example)
 
         dump_dict_to_csv(self.dump_dict)
-        self.log(str(result_dict))
+        self.log_testing_results(str(result_dict))
         return result_dict
 
     def result_demarcated(self):
