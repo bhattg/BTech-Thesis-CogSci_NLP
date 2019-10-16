@@ -2524,3 +2524,50 @@ Processing test set
 157721, 7000
 Accuracy : 6621
 151000
+152000
+153000
+Processing test set
+157721, 7000
+Accuracy : 6641
+154000
+155000
+156000
+Processing test set
+157721, 7000
+Accuracy : 6647
+157000
+Processing test set
+157721, 7000
+Accuracy : 6599
+epoch : 8
+1000
+2000
+3000
+Processing test set
+157721, 7000
+Accuracy : 6605
+4000
+5000
+6000
+Processing test set
+157721, 7000
+Accuracy : 6642
+7000
+8000
+9000
+Processing test set
+157721, 7000
+Accuracy : 6639
+10000
+11000
+12000
+Processing test set
+157721, 7000
+Accuracy : 6654
+13000
+14000
+15000
+Processing test set
+157721, 7000
+Accuracy : 6619
+16000
