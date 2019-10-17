@@ -1,5 +1,6 @@
-from agreement_acceptor import GramHalfPlusSentence
+from agreement_acceptor import FullGramSentence
 import filenames
 
-pvn = GramHalfPlusSentence(filenames.deps, prop_train=0.1, output_filename='output_log.txt', len_after_verb=10)
-pvn.pipeline(train=True, load=True, epochs=10, model_prefix='lstm_ghp_plus10',test_size=50000, data_name='plus10', model="lstm_ghp_plus10.pkl")
+pvn = FullGramSentence(filenames.deps, prop_train=0.1, output_filename='output_log.txt', len_after_verb=10)
+
+pvn.pipeline(train=True,model="decay_fullGram.pkl", load_data=True,epochs=10, model_prefix='decay_fullGram', data_name='fullGram', test_size=7000)

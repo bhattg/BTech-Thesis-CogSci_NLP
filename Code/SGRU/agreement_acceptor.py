@@ -9,7 +9,6 @@ import pandas as pd
 import random
 import six
 import pickle
-import batch_lstm
 from lstm_model import LSTMModel
 from sgru import LSTM
 from utils import gen_inflect_from_vocab, dependency_fields, dump_dict_to_csv
@@ -76,18 +75,21 @@ def pad_sequences(sequences, maxlen=None, dtype='int32',
 
 class RNNAcceptor(LSTMModel):
 
+
     def update_dump_dict(self, key,x_test_minibatch, y_test_minibatch, predicted):
 
-        x =  x_test_minibatch.numpy().tolist()
-        y =  y_test_minibatch.numpy().tolist()
+        # x =  x_test_minibatch.numpy().tolist()
+        # y =  y_test_minibatch.numpy().tolist()
+        x =  x_test_minibatch.tolist()
+        y =  y_test_minibatch.tolist()
         p =  predicted
 
-        for i in range(len(x)):
-            # print(type(x[i]))
-            string =  self.input_to_string(x[i])
-            self.dump_dict[key].append((string, y[i], p))
-
-
+        # for i in range(len(x)):
+        #     # print(type(x[i]))
+        #     string =  self.input_to_string(x[i])
+        #     self.dump_dict[key].append((string, y[i], p))
+        string =  self.input_to_string(x)
+        self.dump_dict[key].append((string, y, p))
 
     def test_model(self):
         # create the batched examples of data
@@ -102,16 +104,17 @@ class RNNAcceptor(LSTMModel):
                 self.dump_dict[keys]=[]
                 accuracy=0
                 total_example=0
-                for x_test, y_test in self.testing_dict[key]:              
-                    tot += 1
+                for x_test, y_test in self.testing_dict[keys]:              
+                    total_example += 1
                     y_test = np.asarray(y_test)
                     x_test = torch.tensor(x_test, dtype=torch.long)
                     pred, _, _ = self.model(x_test)
                     if (pred[0][0] > pred[0][1]) :
-                        predicted=0
+                        predicted = 0
                     else :
-                        predicted=1
-
+                        predicted = 1
+                    if(predicted==(y_test)) :
+                        accuracy+=1
                     self.update_dump_dict(keys, x_test, y_test, predicted)
 
                 result_dict[keys] = (accuracy/total_example, total_example)
@@ -119,8 +122,6 @@ class RNNAcceptor(LSTMModel):
         dump_dict_to_csv(self.dump_dict)
         self.log(str(result_dict))
         return result_dict
-
-
 
     def result_demarcated(self):
         if not hasattr(self, "testing_dict"):
@@ -133,7 +134,6 @@ class RNNAcceptor(LSTMModel):
                 accuracy=0
                 tot=0
                 for x_test, y_test in self.testing_dict[key]:
-                    
                     tot += 1
                     y_test = np.asarray(y_test)
                     x_test = torch.tensor(x_test, dtype=torch.long)
@@ -148,7 +148,6 @@ class RNNAcceptor(LSTMModel):
                 result_dict[key] = (accuracy/tot , tot)
         self.log(str(result_dict))
         return result_dict
-
 
     def create_train_and_test(self, examples, test_size, data_name, save_data=False):
         d = [[], []]
@@ -457,4 +456,23 @@ class GramHalfPlusSentence(RNNAcceptor):
         else:
             dep['label'] = 'grammatical'
         dep['sentence'] = ' '.join(tokens[:v+1 + self.len_after_verb])
+        return tokens
+
+class FullGramSentence(RNNAcceptor):
+
+    def __init__(self, *args, **kwargs):
+        RNNAcceptor.__init__(self, *args, **kwargs)
+        self.class_to_code = {'grammatical': 0, 'ungrammatical': 1}
+        self.code_to_class = {x: y for y, x in self.class_to_code.items()}
+        self.inflect_verb, _ = gen_inflect_from_vocab(self.vocab_file)
+
+    def process_single_dependency(self, dep):
+        tokens = dep['sentence'].split()
+        v = int(dep['verb_index']) - 1
+        #tokens = tokens[:v+1 + self.len_after_verb]
+        if random.random() < 0.5:
+            dep['label'] = 'ungrammatical'
+            tokens[v] = self.inflect_verb[tokens[v]]
+        else:
+            dep['label'] = 'grammatical'
         return tokens

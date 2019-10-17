@@ -31,20 +31,20 @@ class LstmModule(nn.Module):
         self.batch_size = batch_size
         self.bias = bias
         self.num_chunks = num_chunks
-        self.igate = nn.Parameter(torch.tensor(0.5))
+        # self.igate = nn.Parameter(torch.tensor(0.5))
         self.weight_ih = nn.Parameter(torch.Tensor(num_chunks * hidden_size, input_size))
         self.weight_hh = nn.Parameter(torch.Tensor(num_chunks * hidden_size, hidden_size))
-        self.weight_ir = nn.Parameter(torch.Tensor(hidden_size, input_size))
-        self.weight_hr = nn.Parameter(torch.Tensor(hidden_size, hidden_size))
+        # self.weight_ir = nn.Parameter(torch.Tensor(hidden_size, input_size))
+        # self.weight_hr = nn.Parameter(torch.Tensor(hidden_size, hidden_size))
 
         if bias:
             self.bias_ih = nn.Parameter(torch.Tensor(num_chunks * hidden_size))
             self.bias_hh = nn.Parameter(torch.Tensor(num_chunks * hidden_size))
-            self.bias_r = nn.Parameter(torch.Tensor(hidden_size))
+            # self.bias_r = nn.Parameter(torch.Tensor(hidden_size))
         else:
             self.register_parameter('bias_ih', None)
             self.register_parameter('bias_hh', None)
-            self.register_parameter('bias_r', None)
+            # self.register_parameter('bias_r', None)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -62,19 +62,23 @@ class LstmModule(nn.Module):
         if hx is None:
             hx = input_.new_zeros(self.hidden_size, requires_grad=False)
 
+        c_prev = hx
+
         w_x = torch.addmv(self.bias_ih, self.weight_ih, input_)
         w_h = torch.addmv(self.bias_hh, self.weight_hh, hx)
         w_w = (w_x + w_h)
 
-        z = self.sigmoid(w_w[0 : self.hidden_size])
-        r = self.sigmoid(w_w[self.hidden_size : 2*self.hidden_size])
+        c_tilda = self.tanh(w_w[0 : self.hidden_size])
+        gate = self.sigmoid(w_w[self.hidden_size : 2*self.hidden_size])
 
-        inp = torch.mv(self.weight_ir, input_)
-        prevh = torch.mv(self.weight_hr, (r * hx))
+        # inp = torch.mv(self.weight_ir, input_)
+        # prevh = torch.mv(self.weight_hr, (r * hx))
 
-        h = ((1 - z) * hx) + (z * self.relu(inp + prevh + self.bias_r))
+        c = ((1 - gate) * c_prev) + (gate * c_tilda)
 
-        return h, z, r
+        h = c
+
+        return h, gate
 
 class LSTM(nn.Module):
     def __init__(self, input_units, hidden_units, vocab_size, batch_size = 1, embedding_dim = 50, output_units = 10, num_layers = 1, dropout=0):
@@ -111,7 +115,7 @@ class LSTM(nn.Module):
         all_layers_last_hidden = []
         state = None
         max_time = len(input_)
-        all_hidden, all_outputs, all_z, all_r = [], [], [], []
+        all_hidden, all_outputs, all_gate = [], [], [], []
 
         for layer in range(self.num_layers):
             cell = self.get_cell(layer)
@@ -119,12 +123,12 @@ class LSTM(nn.Module):
             for time in range(max_time):
                 # print(time)
                 # inputx = torch.tensor(input_[time], requires_grad = False)#.to(device)
-                state, z_gate, r_gate = cell(input_ = self.embedding_layer(input_[time]), hx = state)
+                state, gate = cell(input_ = self.embedding_layer(input_[time]), hx = state)
                 all_hidden.append(state.tolist())
                 out = self.linear(state)
                 all_outputs.append(out.tolist())
-                all_z.append(z_gate.tolist())
-                all_r.append(r_gate.tolist())
+                all_gate.append(z_gate.tolist())
+                # all_r.append(r_gate.tolist())
         
         hlast = state
         softmax_out = self.linear(hlast)
