@@ -1,0 +1,6 @@
+Creating model
+vocab size : 10178
+fullGram
+Processing test set
+157721, 1419490
+Accuracy : 1348825
