@@ -1,0 +1,993 @@
+creating data
+Loading examples
+Creating model
+vocab size : 10178
+Training
+157721
+cpu to gpu
+epoch : 0
+1000
+2000
+3000
+Processing test set
+157721, 7000
+Accuracy : 3544
+4000
+5000
+6000
+Processing test set
+157721, 7000
+Accuracy : 3763
+7000
+8000
+9000
+Processing test set
+157721, 7000
+Accuracy : 4196
+10000
+11000
+12000
+Processing test set
+157721, 7000
+Accuracy : 4401
+13000
+14000
+15000
+Processing test set
+157721, 7000
+Accuracy : 4463
+16000
+17000
+18000
+Processing test set
+157721, 7000
+Accuracy : 4594
+19000
+20000
+21000
+Processing test set
+157721, 7000
+Accuracy : 4695
+22000
+23000
+24000
+Processing test set
+157721, 7000
+Accuracy : 4789
+25000
+26000
+27000
+Processing test set
+157721, 7000
+Accuracy : 4755
+28000
+29000
+30000
+Processing test set
+157721, 7000
+Accuracy : 4940
+31000
+32000
+33000
+Processing test set
+157721, 7000
+Accuracy : 5093
+34000
+35000
+36000
+Processing test set
+157721, 7000
+Accuracy : 5186
+37000
+38000
+39000
+Processing test set
+157721, 7000
+Accuracy : 5251
+40000
+41000
+42000
+Processing test set
+157721, 7000
+Accuracy : 5242
+43000
+44000
+45000
+Processing test set
+157721, 7000
+Accuracy : 5357
+46000
+47000
+48000
+Processing test set
+157721, 7000
+Accuracy : 5362
+49000
+50000
+51000
+Processing test set
+157721, 7000
+Accuracy : 5502
+52000
+53000
+54000
+Processing test set
+157721, 7000
+Accuracy : 5535
+55000
+56000
+57000
+Processing test set
+157721, 7000
+Accuracy : 5611
+58000
+59000
+60000
+Processing test set
+157721, 7000
+Accuracy : 5631
+61000
+62000
+63000
+Processing test set
+157721, 7000
+Accuracy : 5744
+64000
+65000
+66000
+Processing test set
+157721, 7000
+Accuracy : 5703
+67000
+68000
+69000
+Processing test set
+157721, 7000
+Accuracy : 5833
+70000
+71000
+72000
+Processing test set
+157721, 7000
+Accuracy : 5808
+73000
+74000
+75000
+Processing test set
+157721, 7000
+Accuracy : 5821
+76000
+77000
+78000
+Processing test set
+157721, 7000
+Accuracy : 5912
+79000
+80000
+81000
+Processing test set
+157721, 7000
+Accuracy : 5795
+82000
+83000
+84000
+Processing test set
+157721, 7000
+Accuracy : 6002
+85000
+86000
+87000
+Processing test set
+157721, 7000
+Accuracy : 6028
+88000
+89000
+90000
+Processing test set
+157721, 7000
+Accuracy : 6068
+91000
+92000
+93000
+Processing test set
+157721, 7000
+Accuracy : 6067
+94000
+95000
+96000
+Processing test set
+157721, 7000
+Accuracy : 6057
+97000
+98000
+99000
+Processing test set
+157721, 7000
+Accuracy : 6190
+100000
+101000
+102000
+Processing test set
+157721, 7000
+Accuracy : 6185
+103000
+104000
+105000
+Processing test set
+157721, 7000
+Accuracy : 6244
+106000
+107000
+108000
+Processing test set
+157721, 7000
+Accuracy : 6213
+109000
+110000
+111000
+Processing test set
+157721, 7000
+Accuracy : 6259
+112000
+113000
+114000
+Processing test set
+157721, 7000
+Accuracy : 6287
+115000
+116000
+117000
+Processing test set
+157721, 7000
+Accuracy : 6331
+118000
+119000
+120000
+Processing test set
+157721, 7000
+Accuracy : 6323
+121000
+122000
+123000
+Processing test set
+157721, 7000
+Accuracy : 6357
+124000
+125000
+126000
+Processing test set
+157721, 7000
+Accuracy : 6364
+127000
+128000
+129000
+Processing test set
+157721, 7000
+Accuracy : 6396
+130000
+131000
+132000
+Processing test set
+157721, 7000
+Accuracy : 6433
+133000
+134000
+135000
+Processing test set
+157721, 7000
+Accuracy : 6454
+136000
+137000
+138000
+Processing test set
+157721, 7000
+Accuracy : 6449
+139000
+140000
+141000
+Processing test set
+157721, 7000
+Accuracy : 6443
+142000
+143000
+144000
+Processing test set
+157721, 7000
+Accuracy : 6450
+145000
+146000
+147000
+Processing test set
+157721, 7000
+Accuracy : 6493
+148000
+149000
+150000
+Processing test set
+157721, 7000
+Accuracy : 6491
+151000
+152000
+153000
+Processing test set
+157721, 7000
+Accuracy : 6534
+154000
+155000
+156000
+Processing test set
+157721, 7000
+Accuracy : 6502
+157000
+Processing test set
+157721, 7000
+Accuracy : 6505
+epoch : 1
+1000
+2000
+3000
+Processing test set
+157721, 7000
+Accuracy : 6515
+4000
+5000
+6000
+Processing test set
+157721, 7000
+Accuracy : 6564
+7000
+8000
+9000
+Processing test set
+157721, 7000
+Accuracy : 6551
+10000
+11000
+12000
+Processing test set
+157721, 7000
+Accuracy : 6551
+13000
+14000
+15000
+Processing test set
+157721, 7000
+Accuracy : 6579
+16000
+17000
+18000
+Processing test set
+157721, 7000
+Accuracy : 6547
+19000
+20000
+21000
+Processing test set
+157721, 7000
+Accuracy : 6566
+22000
+23000
+24000
+Processing test set
+157721, 7000
+Accuracy : 6587
+25000
+26000
+27000
+Processing test set
+157721, 7000
+Accuracy : 6590
+28000
+29000
+30000
+Processing test set
+157721, 7000
+Accuracy : 6588
+31000
+32000
+33000
+Processing test set
+157721, 7000
+Accuracy : 6593
+34000
+35000
+36000
+Processing test set
+157721, 7000
+Accuracy : 6644
+37000
+38000
+39000
+Processing test set
+157721, 7000
+Accuracy : 6613
+40000
+41000
+42000
+Processing test set
+157721, 7000
+Accuracy : 6590
+43000
+44000
+45000
+Processing test set
+157721, 7000
+Accuracy : 6639
+46000
+47000
+48000
+Processing test set
+157721, 7000
+Accuracy : 6656
+49000
+50000
+51000
+Processing test set
+157721, 7000
+Accuracy : 6651
+52000
+53000
+54000
+Processing test set
+157721, 7000
+Accuracy : 6610
+55000
+56000
+57000
+Processing test set
+157721, 7000
+Accuracy : 6662
+58000
+59000
+60000
+Processing test set
+157721, 7000
+Accuracy : 6667
+61000
+62000
+63000
+Processing test set
+157721, 7000
+Accuracy : 6670
+64000
+65000
+66000
+Processing test set
+157721, 7000
+Accuracy : 6637
+67000
+68000
+69000
+Processing test set
+157721, 7000
+Accuracy : 6670
+70000
+71000
+72000
+Processing test set
+157721, 7000
+Accuracy : 6684
+73000
+74000
+75000
+Processing test set
+157721, 7000
+Accuracy : 6677
+76000
+77000
+78000
+Processing test set
+157721, 7000
+Accuracy : 6697
+79000
+80000
+81000
+Processing test set
+157721, 7000
+Accuracy : 6663
+82000
+83000
+84000
+Processing test set
+157721, 7000
+Accuracy : 6708
+85000
+86000
+87000
+Processing test set
+157721, 7000
+Accuracy : 6673
+88000
+89000
+90000
+Processing test set
+157721, 7000
+Accuracy : 6684
+91000
+92000
+93000
+Processing test set
+157721, 7000
+Accuracy : 6697
+94000
+95000
+96000
+Processing test set
+157721, 7000
+Accuracy : 6666
+97000
+98000
+99000
+Processing test set
+157721, 7000
+Accuracy : 6716
+100000
+101000
+102000
+Processing test set
+157721, 7000
+Accuracy : 6719
+103000
+104000
+105000
+Processing test set
+157721, 7000
+Accuracy : 6722
+106000
+107000
+108000
+Processing test set
+157721, 7000
+Accuracy : 6715
+109000
+110000
+111000
+Processing test set
+157721, 7000
+Accuracy : 6711
+112000
+113000
+114000
+Processing test set
+157721, 7000
+Accuracy : 6711
+115000
+116000
+117000
+Processing test set
+157721, 7000
+Accuracy : 6724
+118000
+119000
+120000
+Processing test set
+157721, 7000
+Accuracy : 6725
+121000
+122000
+123000
+Processing test set
+157721, 7000
+Accuracy : 6734
+124000
+125000
+126000
+Processing test set
+157721, 7000
+Accuracy : 6727
+127000
+128000
+129000
+Processing test set
+157721, 7000
+Accuracy : 6736
+130000
+131000
+132000
+Processing test set
+157721, 7000
+Accuracy : 6710
+133000
+134000
+135000
+Processing test set
+157721, 7000
+Accuracy : 6724
+136000
+137000
+138000
+Processing test set
+157721, 7000
+Accuracy : 6733
+139000
+140000
+141000
+Processing test set
+157721, 7000
+Accuracy : 6754
+142000
+143000
+144000
+Processing test set
+157721, 7000
+Accuracy : 6738
+145000
+146000
+147000
+Processing test set
+157721, 7000
+Accuracy : 6719
+148000
+149000
+150000
+Processing test set
+157721, 7000
+Accuracy : 6733
+151000
+152000
+153000
+Processing test set
+157721, 7000
+Accuracy : 6753
+154000
+155000
+156000
+Processing test set
+157721, 7000
+Accuracy : 6753
+157000
+Processing test set
+157721, 7000
+Accuracy : 6745
+epoch : 2
+1000
+2000
+3000
+Processing test set
+157721, 7000
+Accuracy : 6706
+4000
+5000
+6000
+Processing test set
+157721, 7000
+Accuracy : 6749
+7000
+8000
+9000
+Processing test set
+157721, 7000
+Accuracy : 6785
+10000
+11000
+12000
+Processing test set
+157721, 7000
+Accuracy : 6752
+13000
+14000
+15000
+Processing test set
+157721, 7000
+Accuracy : 6735
+16000
+17000
+18000
+Processing test set
+157721, 7000
+Accuracy : 6718
+19000
+20000
+21000
+Processing test set
+157721, 7000
+Accuracy : 6762
+22000
+23000
+24000
+Processing test set
+157721, 7000
+Accuracy : 6754
+25000
+26000
+27000
+Processing test set
+157721, 7000
+Accuracy : 6753
+28000
+29000
+30000
+Processing test set
+157721, 7000
+Accuracy : 6770
+31000
+32000
+33000
+Processing test set
+157721, 7000
+Accuracy : 6755
+34000
+35000
+36000
+Processing test set
+157721, 7000
+Accuracy : 6753
+37000
+38000
+39000
+Processing test set
+157721, 7000
+Accuracy : 6773
+40000
+41000
+42000
+Processing test set
+157721, 7000
+Accuracy : 6766
+43000
+44000
+45000
+Processing test set
+157721, 7000
+Accuracy : 6750
+46000
+47000
+48000
+Processing test set
+157721, 7000
+Accuracy : 6782
+49000
+50000
+51000
+Processing test set
+157721, 7000
+Accuracy : 6786
+52000
+53000
+54000
+Processing test set
+157721, 7000
+Accuracy : 6749
+55000
+56000
+57000
+Processing test set
+157721, 7000
+Accuracy : 6785
+58000
+59000
+60000
+Processing test set
+157721, 7000
+Accuracy : 6782
+61000
+62000
+63000
+Processing test set
+157721, 7000
+Accuracy : 6775
+64000
+65000
+66000
+Processing test set
+157721, 7000
+Accuracy : 6719
+67000
+68000
+69000
+Processing test set
+157721, 7000
+Accuracy : 6738
+70000
+71000
+72000
+Processing test set
+157721, 7000
+Accuracy : 6762
+73000
+74000
+75000
+Processing test set
+157721, 7000
+Accuracy : 6750
+76000
+77000
+78000
+Processing test set
+157721, 7000
+Accuracy : 6754
+79000
+80000
+81000
+Processing test set
+157721, 7000
+Accuracy : 6775
+82000
+83000
+84000
+Processing test set
+157721, 7000
+Accuracy : 6771
+85000
+86000
+87000
+Processing test set
+157721, 7000
+Accuracy : 6786
+88000
+89000
+90000
+Processing test set
+157721, 7000
+Accuracy : 6770
+91000
+92000
+93000
+Processing test set
+157721, 7000
+Accuracy : 6776
+94000
+95000
+96000
+Processing test set
+157721, 7000
+Accuracy : 6757
+97000
+98000
+99000
+Processing test set
+157721, 7000
+Accuracy : 6774
+100000
+101000
+102000
+Processing test set
+157721, 7000
+Accuracy : 6777
+103000
+104000
+105000
+Processing test set
+157721, 7000
+Accuracy : 6788
+106000
+107000
+108000
+Processing test set
+157721, 7000
+Accuracy : 6780
+109000
+110000
+111000
+Processing test set
+157721, 7000
+Accuracy : 6754
+112000
+113000
+114000
+Processing test set
+157721, 7000
+Accuracy : 6741
+115000
+116000
+117000
+Processing test set
+157721, 7000
+Accuracy : 6788
+119000
+120000
+Processing test set
+157721, 7000
+Accuracy : 6789
+121000
+122000
+123000
+Processing test set
+157721, 7000
+Accuracy : 6791
+124000
+125000
+126000
+Processing test set
+157721, 7000
+Accuracy : 6783
+127000
+128000
+129000
+Processing test set
+157721, 7000
+Accuracy : 6787
+130000
+131000
+132000
+Processing test set
+157721, 7000
+Accuracy : 6787
+133000
+134000
+135000
+Processing test set
+157721, 7000
+Accuracy : 6755
+136000
+137000
+138000
+Processing test set
+157721, 7000
+Accuracy : 6800
+139000
+140000
+141000
+Processing test set
+157721, 7000
+Accuracy : 6787
+142000
+143000
+144000
+Processing test set
+157721, 7000
+Accuracy : 6790
+145000
+146000
+147000
+Processing test set
+157721, 7000
+Accuracy : 6768
+148000
+149000
+150000
+Processing test set
+157721, 7000
+Accuracy : 6790
+151000
+152000
+153000
+Processing test set
+157721, 7000
+Accuracy : 6779
+154000
+155000
+156000
+Processing test set
+157721, 7000
+Accuracy : 6781
+157000
+Processing test set
+157721, 7000
+Accuracy : 6800
+epoch : 3
+1000
+2000
+3000
+Processing test set
+157721, 7000
+Accuracy : 6806
+4000
+5000
+6000
+Processing test set
+157721, 7000
+Accuracy : 6793
+7000
+8000
+9000
+Processing test set
+157721, 7000
+Accuracy : 6773
+10000
+11000
+12000
+Processing test set
+157721, 7000
+Accuracy : 6789
+13000
+14000
+15000
+Processing test set
+157721, 7000
+Accuracy : 6795
+16000
+17000
+18000
+Processing test set
+157721, 7000
