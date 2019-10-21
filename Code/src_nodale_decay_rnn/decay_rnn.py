@@ -89,7 +89,7 @@ class LstmModule(nn.Module):
             w_h = torch.mv(self.weight_hh, hx)
 
             
-        w_w = ((self.rgate**2) * hx) + ((1-(self.rgate**2)) * (w_x + w_h))
+        w_w = ((self.rgate) * hx) + ((1-(self.rgate)) * (w_x + w_h))
 
         h = self.relu(w_w)
 
