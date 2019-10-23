@@ -227,13 +227,13 @@ class RNNAcceptor(DECAY_RNN_Model):
     def create_model_batched(self, batch_size=32):
         self.log('Creating Batched model')
         self.log('vocab size : ' + str(len(self.vocab_to_ints)))
-        self.model = batch_lstm.LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, batch_size=batch_size)#.to(self.device)
+        self.model = batch_lstm.LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, batch_size=batch_size, embedding_dim=self.embedding_size)#.to(self.device)
 
 
     def create_model(self):
         self.log('Creating model')
         self.log('vocab size : ' + str(len(self.vocab_to_ints)))
-        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1)#.to(device)
+        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1,embedding_dim=self.embedding_size)#.to(device)
 
     def results_batched(self):
         self.log('Processing test set')
