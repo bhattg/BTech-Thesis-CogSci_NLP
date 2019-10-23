@@ -33,7 +33,7 @@ class LstmModule(nn.Module):
         self.batch_size = batch_size
         self.bias = bias
         self.num_chunks = num_chunks
-        self.rgate = nn.Parameter(torch.tensor(0.1))
+        self.rgate = nn.Parameter(torch.tensor(0.8))
         self.weight_ih = nn.Parameter(torch.Tensor(num_chunks * hidden_size, input_size))
         self.weight_hh = nn.Parameter(torch.Tensor(num_chunks * hidden_size, hidden_size))
         #self.d_rec = nn.Parameter(torch.Tensor(num_chunks * hidden_size, hidden_size), requires_grad=False)
