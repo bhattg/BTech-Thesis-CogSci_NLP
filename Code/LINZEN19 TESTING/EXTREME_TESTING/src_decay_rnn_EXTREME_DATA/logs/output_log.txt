@@ -1,0 +1,18 @@
+creating data
+Loading examples
+Creating model
+vocab size : 10178
+creating data
+Loading examples
+creating data
+Loading examples
+Creating model
+vocab size : 10178
+creating data
+Loading examples
+Creating model
+vocab size : 10178
+fullGram
+Processing test set
+1261768, 7000
+Accuracy : 3367

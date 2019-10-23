@@ -154,7 +154,8 @@ class DECAY_RNN_Model(object):
                         predicted.append(1)
             testing_result[files] = (Y_testing_perFile, predicted, np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing, len_X_testing)
             acc = np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing
-            print(str(files) + " "+str(acc)+" "+str(len_X_testing))
+            print(str(acc)+" "+str(len_X_testing))
+
         return testing_result
     
     def load_external_testing(self, filename, save_processed_data = True):
@@ -223,7 +224,7 @@ class DECAY_RNN_Model(object):
 ####  AUTHOR @GANTAVYA BHATT #############################
 ##########################################################
 
-# IF YOU HAVE AN EXTERNAL LNIZEN .PKL, THEN USE load_data=False, test_external=True, load_external=False, give value to pickel folder 
+# IF YOU HAVE AN EXTERNAL LNIZEN .PKL, THEN USE load_data=False, test_external=True, load_external=False
 # external_file = address of saved modified pkl inputs 
 #pickel folder: address of linzen pikel 
 

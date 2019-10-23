@@ -1,7 +1,7 @@
 import json
+import sys
 import multiprocessing
 import os
-import sys
 import os.path as op
 import random
 import torch
@@ -38,7 +38,7 @@ class BatchedDataset(Dataset):
         return self.length
 
 
-class DECAY_RNN_Model(object):
+class LSTMModel(object):
 
     def input_to_string(self, x_input):
         #x_input is the example we want to convert to the string 
@@ -50,6 +50,8 @@ class DECAY_RNN_Model(object):
             str_tok =  self.ints_to_vocab[token]
             example_string+=str_tok+" "
         return example_string
+
+
 
     def demark_testing(self):
         X_test=self.X_test
@@ -68,7 +70,6 @@ class DECAY_RNN_Model(object):
     serialized_attributes = ['vocab_to_ints', 'ints_to_vocab', 'filename',
                              'X_train', 'Y_train', 'deps_train',
                              'X_test', 'Y_test', 'deps_test']
-
 
     def __init__(self, filename=None, serialization_dir=None,
                  batch_size=1, embedding_size=50, hidden_dim = 50,
@@ -106,14 +107,22 @@ class DECAY_RNN_Model(object):
         with open('logs/grad_' + self.output_filename, 'a') as file:
             file.write(message + '\n')
 
-    def log_alpha(self,message):
-        with open('logs/alpha_' + self.output_filename, 'a') as file:
+    def log_input(self, message):
+        with open('logs/input_' + self.output_filename, 'a') as file:
             file.write(message + '\n')
 
+    def log_forget(self, message):
+        with open('logs/forget_' + self.output_filename, 'a') as file:
+            file.write(message + '\n')
+
+    def log_output(self, message):
+        with open('logs/output_' + self.output_filename, 'a') as file:
+            file.write(message + '\n')
+
+    
     def log_result(self, message):
         with open('logs/result_' + self.output_filename, 'a') as file:
             file.write(message + '\n')        
-    
 ##########################################################
 #### EXTERNAL ADDITION DONE TO GET LINZEN TESTED #########
 ##########################################################
@@ -153,7 +162,7 @@ class DECAY_RNN_Model(object):
                     else:
                         predicted.append(1)
             testing_result[files] = (Y_testing_perFile, predicted, np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing, len_X_testing)
-            acc = np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing
+            acc= (np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing)
             print(str(files) + " "+str(acc)+" "+str(len_X_testing))
         return testing_result
     
@@ -227,6 +236,7 @@ class DECAY_RNN_Model(object):
 # external_file = address of saved modified pkl inputs 
 #pickel folder: address of linzen pikel 
 
+
     def pipeline(self, train = True, batched=False, batch_size = 32, shuffle = True, num_workers= 0,
                  load = False, model = '', test_size=7000, 
                  train_size=None, model_prefix='__', epochs=20, data_name='Not', 
@@ -250,6 +260,7 @@ class DECAY_RNN_Model(object):
                 self.train_batched(epochs, model_prefix, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
             else:   
                 self.train(epochs, model_prefix)
+
         else:
             if test_external:
                 if load_external:
@@ -258,7 +269,7 @@ class DECAY_RNN_Model(object):
                     self.load_external_testing(pickel_folder, True)
             else:
                 result_dict= self.test_model()
-            # print(result_dict)
+        
         print('Data : ',  data_name)
         self.log(data_name)
 
@@ -272,7 +283,6 @@ class DECAY_RNN_Model(object):
 
         if (test_size == -2):
             acctrain = self.results_train()
-
 
     def load_examples(self,data_name='Not',save_data=False, n_examples=None):
         '''
@@ -318,7 +328,73 @@ class DECAY_RNN_Model(object):
         return examples
 
     def load_model(self, model) :
-        self.model = torch.load(model)         
+        print("Loading MOdel!")
+        self.model = torch.load(model)
+        
+    def train_batched(self, n_epochs=10, model_prefix="__", batch_size=32, shuffle=True, learning_rate=0.002, num_workers=0):
+        self.log('Training Batched')
+        if not hasattr(self, 'model'):
+            self.create_model()
+        
+        loss_function = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(self.model.parameters(), lr = learning_rate)
+        prev_param = list(self.model.parameters())[0].clone()
+        max_acc = 0
+        self.log(len(self.X_train))
+        '''
+        Since our Dataset class needs the array as the input and it is actually better to use array as the inputs, 
+        so we will conver the training data to array
+        '''
+        total_batches = int(len(self.X_train)/batch_size)
+        x_train = np.asarray(self.X_train)#.to(device)   
+        y_train = np.asarray(self.Y_train)#torch.tensor(self.Y_train, requires_grad=False)#.to(device)
+        # self.log('cpu to gpu')
+        # acc = self.results()
+        print("Total Train epochs : "+str(n_epochs))
+        print("Total Train batches : "+str(total_batches))
+
+        new_BatchedDataset =  BatchedDataset(x_train, y_train)
+        DataGenerator =  DataLoader(new_BatchedDataset, batch_size= batch_size, shuffle=shuffle, num_workers=num_workers, drop_last=True)
+        
+        for epoch in range(n_epochs) :
+            
+            self.log('epoch : ' + str(epoch))
+            self.log_grad('epoch : ' + str(epoch))
+            batches_processed = 0
+            batch_list=[]
+            for x_batch, y_batch in DataGenerator :
+                batch_list.append((x_batch, y_batch))
+                if batches_processed!=0 and batches_processed%10==0:
+                    self.log("{}/{} Batches Processed".format(batches_processed, total_batches))
+                    self.validate_training(batch_list)
+                    batch_list=[]
+                    # acc =  self.results_batched()
+                    # if (acc >= max_acc) :
+                    #     model_name = model_prefix + '.pkl'
+                    #     torch.save(self.model, model_name)
+                    #     max_acc = acc                    
+
+                self.model.zero_grad()
+                output, hidden, out = self.model(x_batch)
+                loss = loss_function(output,y_batch)
+                loss.backward(retain_graph=True)
+                optimizer.step()
+                batches_processed+=1
+
+                counter = 0
+                self.log_grad('batches processed : ' + str(batches_processed))
+                for param in self.model.parameters():
+                    if param.grad is not None:
+                        # print(counter, param.shape)
+                        self.log_grad(str(counter) + ' : ' + str(param.grad.norm().item()))
+                        counter += 1
+
+            # acc = self.results_batched()
+            # if (acc > max_acc) :
+            #     model_name = model_prefix + '.pkl'
+            #     torch.save(self.model, model_name)
+            #     max_acc = acc
+            
 
             
     def train(self, n_epochs=10, model_prefix='__'):
@@ -326,7 +402,6 @@ class DECAY_RNN_Model(object):
         if not hasattr(self, 'model'):
             self.create_model()
         
-
         loss_function = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr = 0.001)
         prev_param = list(self.model.parameters())[0].clone()
@@ -343,19 +418,20 @@ class DECAY_RNN_Model(object):
         for epoch in range(n_epochs) :
             self.log('epoch : ' + str(epoch))
             self.log_grad('epoch : ' + str(epoch))
-            self.log_alpha('epoch : ' + str(epoch))
+            
             for index in range(fffstart, len(x_train)) :
                 # self.log(index)
                 if ((index+1) % 1000 == 0) :
                     self.log(index+1)
                     if ((index+1) % 3000 == 0):
                         acc = self.results()
-                        # result_dict = self.result_demarcated()
+                        result_dict = self.result_demarcated()
+                        self.log(str(result_dict))
                         if (acc >= max_acc) :
                             model_name = model_prefix + '.pkl'
                             torch.save(self.model, model_name)
                             max_acc = acc
-                    # _ =  self.test_model()
+                    _ =  self.test_model()
                 
                 self.model.zero_grad()
                 output, hidden, out = self.model(x_train[index])
@@ -366,17 +442,12 @@ class DECAY_RNN_Model(object):
                 
                 loss = loss_function(output, actual)
                 loss.backward(retain_graph=True)
-
-                for name,param in self.model.named_parameters():
-                    if(name=="cell_0.rgate"):
-                        self.log_alpha(str(param))
-
                 optimizer.step()
 
                 if ((index) % 10 == 0) :
                     counter = 0
                     self.log_grad('index : ' + str(index))
-                    for param in self.model.parameters():                        
+                    for param in self.model.parameters():
                         if param.grad is not None:
                             # print(counter, param.shape)
                             self.log_grad(str(counter) + ' : ' + str(param.grad.norm().item()))
