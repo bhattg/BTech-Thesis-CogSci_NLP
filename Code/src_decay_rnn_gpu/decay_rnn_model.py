@@ -231,7 +231,7 @@ class DECAY_RNN_Model(object):
                             model_name = model_prefix + '.pkl'
                             torch.save(self.model, model_name)
                             max_acc = acc
-                    _ =  self.test_model()
+                    #_ =  self.test_model()
                 
                 self.model.zero_grad()
                 output, hidden, out = self.model(x_train[index])

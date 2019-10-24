@@ -230,7 +230,7 @@ class RNNAcceptor(DECAY_RNN_Model):
     def create_model(self):
         self.log('Creating model')
         self.log('vocab size : ' + str(len(self.vocab_to_ints)))
-        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1).cuda()
+        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, embedding_dim=self.embedding_size).cuda()
 
     def results_batched(self):
         self.log('Processing test set')
