@@ -72,7 +72,7 @@ class LSTMModel(object):
                              'X_test', 'Y_test', 'deps_test']
 
     def __init__(self, filename=None, serialization_dir=None,
-                 batch_size=1, embedding_size=50, hidden_dim = 50,
+                 batch_size=64, embedding_size=50, hidden_dim = 50,
                  maxlen=50, prop_train=0.9, rnn_output_size=10,
                  mode='infreq_pos', vocab_file=filenames.vocab_file,
                  equalize_classes=False, criterion=None, len_after_verb=0,
@@ -216,13 +216,13 @@ class LSTMModel(object):
             batch_list=[]
             for x_batch, y_batch in DataGenerator :
                 x_batch = x_batch.view(self.batch_size, self.maxlen).to(device)
-                y_batch = y.batch.view(self.batch_size, 1).to(device)
+                y_batch = y_batch.view(self.batch_size,).to(device)
                 batch_list.append((x_batch, y_batch))
                 # if batches_processed!=0 and batches_processed%10==0:
                 #     self.log("{}/{} Batches Processed".format(batches_processed, total_batches))
                 #     self.validate_training(batch_list)
 
-                if batches_processed!=0 and batches_processed%100 ==0 :
+                if batches_processed!=0 and batches_processed%50 ==0 :
                     acc =  self.results_batched()
                     if (acc >= max_acc) :
                         model_name = model_prefix + '.pkl'
@@ -235,6 +235,7 @@ class LSTMModel(object):
                 loss.backward(retain_graph=True)
                 optimizer.step()
                 batches_processed+=1
+                self.log('batches processed : ' + str(batches_processed))
 
                 counter = 0
                 self.log_grad('batches processed : ' + str(batches_processed))
