@@ -109,7 +109,7 @@ class RNNAcceptor(LSTMModel):
                 for x_test, y_test in self.testing_dict[keys]:              
                     total_example += 1
                     y_test = np.asarray(y_test)
-                    x_test = torch.tensor(x_test, dtype=torch.long).cuda()
+                    x_test = torch.tensor(x_test, dtype=torch.long).to(device)
                     pred, _, _ = self.model(x_test)
                     if (pred[0][0] > pred[0][1]) :
                         predicted=0
@@ -144,7 +144,7 @@ class RNNAcceptor(LSTMModel):
                     
                     tot += 1
                     y_test = np.asarray(y_test)
-                    x_test = torch.tensor(x_test, dtype=torch.long).cuda()
+                    x_test = torch.tensor(x_test, dtype=torch.long).to(device)
                     pred, _, _ = self.model(x_test)
                     if (pred[0][0] > pred[0][1]) :
                         predicted=0
@@ -251,7 +251,7 @@ class RNNAcceptor(LSTMModel):
         y_test = self.Y_test
         with torch.no_grad():
             for index in range(len(x_test)) :
-                input_ = torch.tensor(x_test[index], dtype=torch.long).cuda()
+                input_ = torch.tensor(x_test[index], dtype=torch.long).to(device)
                 # This is same as having batch size 1. (1, sequence length) should be the input shape 
                 input_ = input_.view(batch_size_testing, self.maxlen)
                 pred,_, _ = self.model.forward(input_)
@@ -276,7 +276,7 @@ class RNNAcceptor(LSTMModel):
     def results(self):
         self.log('Processing test set')
         predicted = []
-        x_test = torch.tensor(self.X_test, dtype=torch.long).cuda()
+        x_test = torch.tensor(self.X_test, dtype=torch.long).to(device)
         # x_test = self.X_test
         self.log(str(len(self.X_train)) + ', ' + str(len(x_test)))
 
@@ -308,7 +308,7 @@ class RNNAcceptor(LSTMModel):
         total_validation_done = 0
         with torch.no_grad():
             for x_val, y_val in batch_list:
-                pred, hidden, output = self.model(x_val).cuda()
+                pred, hidden, output = self.model(x_val).to(device)
                 for i in range(pred.shape[0]):
                     total+=1
                     if pred[i][0]>pred[i][1]:

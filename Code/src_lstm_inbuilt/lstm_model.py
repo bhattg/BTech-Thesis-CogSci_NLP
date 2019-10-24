@@ -17,8 +17,7 @@ import filenames
 from utils import deps_from_tsv
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# cpu = torch.device("cpu")
-# device = cpu
+
 
 class BatchedDataset(Dataset):
 
@@ -183,7 +182,7 @@ class LSTMModel(object):
         return examples
 
     def load_model(self, model) :
-        self.model = torch.load(model).cuda()
+        self.model = torch.load(model).to(device)
         
     def train_batched(self, n_epochs=10, model_prefix="__", batch_size=32, shuffle=True, learning_rate=0.002, num_workers=0):
         self.log('Training Batched')
@@ -199,8 +198,8 @@ class LSTMModel(object):
         so we will conver the training data to array
         '''
         total_batches = int(len(self.X_train)/batch_size)
-        x_train = np.asarray(self.X_train)#.to(device)   
-        y_train = np.asarray(self.Y_train)#torch.tensor(self.Y_train, requires_grad=False)#.to(device)
+        x_train = np.asarray(self.X_train)   
+        y_train = np.asarray(self.Y_train)
         self.log('cpu to gpu')
 
         print("Total Train epochs : "+str(n_epochs))
@@ -216,8 +215,8 @@ class LSTMModel(object):
             batches_processed = 0
             batch_list=[]
             for x_batch, y_batch in DataGenerator :
-                x_batch = x_batch.view(self.batch_size, self.maxlen)
-                y_batch = y.batch.view(self.batch_size, 1)
+                x_batch = x_batch.view(self.batch_size, self.maxlen).to(device)
+                y_batch = y.batch.view(self.batch_size, 1).to(device)
                 batch_list.append((x_batch, y_batch))
                 # if batches_processed!=0 and batches_processed%10==0:
                 #     self.log("{}/{} Batches Processed".format(batches_processed, total_batches))
