@@ -101,6 +101,7 @@ class RNNAcceptor(LSTMModel):
         if not hasattr(self,"testing_dict"):
             self.demark_testing()
 
+        batch_size_testing=1
         with torch.no_grad():
             for keys in (self.testing_dict.keys()):
                 self.dump_dict[keys]=[]
@@ -110,6 +111,7 @@ class RNNAcceptor(LSTMModel):
                     total_example += 1
                     y_test = np.asarray(y_test)
                     x_test = torch.tensor(x_test, dtype=torch.long).to(device)
+                    x_test = x_test.view(batch_size_testing, self.maxlen)
                     pred, _, _ = self.model(x_test)
                     if (pred[0][0] > pred[0][1]) :
                         predicted=0
@@ -234,7 +236,7 @@ class RNNAcceptor(LSTMModel):
 
         self.log('Creating Batched model')
         self.log('vocab size : ' + str(len(self.vocab_to_ints)))
-        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, batch_size=self.batch_size, embedding_dim=self.embedding_size)#.to(self.device)
+        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, batch_size=self.batch_size, embedding_dim=self.embedding_size).to(device)
 
 
     # def create_model(self):
