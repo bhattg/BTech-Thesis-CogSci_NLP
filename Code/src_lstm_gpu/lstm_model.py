@@ -233,11 +233,7 @@ class LSTMModel(object):
                     self.log("{}/{} Batches Processed".format(batches_processed, total_batches))
                     self.validate_training(batch_list)
                     batch_list=[]
-                    # acc =  self.results_batched()
-                    # if (acc >= max_acc) :
-                    #     model_name = model_prefix + '.pkl'
-                    #     torch.save(self.model, model_name)
-                    #     max_acc = acc                    
+                             
 
                 self.model.zero_grad()
                 output, hidden, out = self.model(x_batch)

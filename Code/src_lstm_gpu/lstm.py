@@ -8,7 +8,7 @@ import math
 
 _VF = torch._C._VariableFunctions
 
- device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # cpu = torch.device("cpu")
 # device = cpu
 
