@@ -93,7 +93,7 @@ class LstmModule(nn.Module):
             print(self.weight_ih.size())
             print(input_.size())
 
-            w_x = self.bias_ih + torch.bmm(input_,self.weight_ih)
+            w_x = self.bias_ih + torch.matmul(input_,self.weight_ih)
             w_h = self.bias_hh + torch.matmul(hx,dale_hh)
             
             print(w_x.size())
@@ -103,7 +103,7 @@ class LstmModule(nn.Module):
             w_h = torch.bmm(hx,dale_hh)    
 
         w_w = ((self.rgate) * hx) + ((1-(self.rgate)) * (w_x + w_h))
-
+        print("w_w "+str(w_w.size()))
         h = self.relu(w_w)
 
         return h
@@ -119,14 +119,14 @@ class LSTM(nn.Module):
         self.dropout = dropout
         self.batch_size = batch_size
         print(str(embedding_dim)+" "+str(hidden_units)+" "+str(num_layers)+" "+str(batch_size))
-        
+        self.embedding_layer = torch.nn.Embedding(vocab_size,self.embedding_dim).cuda()
+
         for layer in range(num_layers):
             layer_input_units = input_units if layer == 0 else hidden_units
             cell = LstmModule(input_units = self.embedding_dim, output_units = output_units, hidden_units = hidden_units, batch_size = batch_size,embedding_dim=embedding_dim)
             setattr(self, 'cell_{}'.format(layer), cell)
         
         print("input-size "+str(input_units))
-        self.embedding_layer = torch.nn.Embedding(vocab_size,self.embedding_dim).cuda()
         #self.embedding_layer = torch.nn.Embedding(vocab_size, self.embedding_dim).cuda()
         #print("vocabsize "+str(vocab_size))
         #self.embedding_layer = torch.nn.Embedding(vocab_size, self.embedding_dim).cuda()
@@ -158,18 +158,26 @@ class LSTM(nn.Module):
         for layer in range(self.num_layers):
             cell = self.get_cell(layer)
             #for time in range(max_time):
-            print(input_.size())
-            input_emb = self.embedding_layer(input_.long())
-            print("input_emb "+str(input_emb.size()))
-            #input_=input_.view(input_.shape[0], -1, self.embedding_dim)
-            #input_emb = input_emb.view(self.batch_size, self.input_units, 1)
+            # print(input_.size())
+            # input_emb = self.embedding_layer(input_.long())
+            # print("input_emb "+str(input_emb.size()))
+            # #input_=input_.view(input_.shape[0], -1, self.embedding_dim)
+            # #input_emb = input_emb.view(self.batch_size, self.input_units, 1)
 
-            state = cell(input_ = input_emb, hx = state)
-            all_hidden.append(state.tolist())
-            out = self.linear(state)
-            all_outputs.append(out.tolist())
+            # state = cell(input_ = input_emb, hx = state)
+            # all_hidden.append(state.tolist())
+            # print("statesize "+str(state.size()))
+            # out = self.linear(state)
+            # all_outputs.append(out.tolist())
+            for time in range(max_time):
+                print(input_.size())
+                print("input_emb "+str(self.embedding_layer(input_[time]).size()))
+                state = cell(input_ = self.embedding_layer(input_[time]), hx = state)
+                all_hidden.append(state.tolist())
+                out = self.linear(state)
+                all_outputs.append(out.tolist())
         
         hlast = state
         softmax_out = self.linear(hlast)
-        softmax_out = torch.stack([softmax_out], 0).cuda()
+        #softmax_out = torch.stack([softmax_out], 0).cuda()
         return softmax_out, all_hidden, all_outputs

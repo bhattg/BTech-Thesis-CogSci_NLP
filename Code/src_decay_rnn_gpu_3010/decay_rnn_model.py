@@ -312,6 +312,8 @@ class DECAY_RNN_Model(object):
 
                 self.model.zero_grad()
                 output, _ , _  = self.model(x_batch)
+                print(output.size())
+                print(y_batch.size())
                 loss = loss_function(output,y_batch)
                 loss.backward(retain_graph=True)
                 optimizer.step()

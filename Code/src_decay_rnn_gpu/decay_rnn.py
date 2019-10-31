@@ -137,6 +137,8 @@ class LSTM(nn.Module):
             for time in range(max_time):
                 # print(time)
                 # inputx = torch.tensor(input_[time], requires_grad = False)#.to(device)
+                print(input_.size())
+                print("input_emb "+str(self.embedding_layer(input_[time]).size()))
                 state = cell(input_ = self.embedding_layer(input_[time]), hx = state)
                 all_hidden.append(state.tolist())
                 out = self.linear(state)
