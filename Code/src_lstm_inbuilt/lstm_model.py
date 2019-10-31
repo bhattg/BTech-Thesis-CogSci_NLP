@@ -17,7 +17,7 @@ import filenames
 from utils import deps_from_tsv
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+print(device)
 
 class BatchedDataset(Dataset):
 
@@ -107,7 +107,7 @@ class LSTMModel(object):
         with open('logs/grad_' + self.output_filename, 'a') as file:
             file.write(message + '\n')
 
-    def pipeline(self, train = True, batched=True, shuffle = True, num_workers= 0,
+    def pipeline(self, train = True, batched=True, batch_size = 32, shuffle = True, num_workers= 0,
                  load = False, model = '', test_size=7000, 
                  train_size=None, model_prefix='__', epochs=20, data_name='Not', 
                  activation=False, df_name='_verbose_.pkl', load_data=False, 
@@ -127,7 +127,7 @@ class LSTMModel(object):
             self.load_model(model)
 
         if (train) :
-            self.train_batched(epochs, model_prefix, batch_size=self.batch_size, shuffle=shuffle, num_workers=num_workers)
+            self.train_batched(epochs, model_prefix, batch_size=batch_size,learning_rate=0.002,shuffle=shuffle, num_workers=num_workers)
 
         else:
             result_dict= self.test_model()
@@ -182,8 +182,7 @@ class LSTMModel(object):
         return examples
 
     def load_model(self, model) :
-        self.model = torch.load(model)
-
+        self.model = torch.load(model).to(device)
         
     def train_batched(self, n_epochs=10, model_prefix="__", batch_size=32, shuffle=True, learning_rate=0.002, num_workers=0):
         self.log('Training Batched')
