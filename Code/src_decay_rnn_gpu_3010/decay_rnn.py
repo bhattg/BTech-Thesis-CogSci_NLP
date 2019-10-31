@@ -89,21 +89,21 @@ class LstmModule(nn.Module):
         dale_hh = self.relu(self.weight_hh)*self.d_rec
         
         if (self.bias) :
-            print(self.bias_ih.size())
-            print(self.weight_ih.size())
-            print(input_.size())
+            #print(self.bias_ih.size())
+            #print(self.weight_ih.size())
+            #print(input_.size())
 
             w_x = self.bias_ih + torch.matmul(input_,self.weight_ih)
             w_h = self.bias_hh + torch.matmul(hx,dale_hh)
             
-            print(w_x.size())
-            print(w_h.size())
+            #print(w_x.size())
+            #print(w_h.size())
         else :
             w_x = torch.bmm(input_,self.weight_ih)
             w_h = torch.bmm(hx,dale_hh)    
 
         w_w = ((self.rgate) * hx) + ((1-(self.rgate)) * (w_x + w_h))
-        print("w_w "+str(w_w.size()))
+        #print("w_w "+str(w_w.size()))
         h = self.relu(w_w)
 
         return h
@@ -118,7 +118,7 @@ class LSTM(nn.Module):
         self.num_layers = num_layers
         self.dropout = dropout
         self.batch_size = batch_size
-        print(str(embedding_dim)+" "+str(hidden_units)+" "+str(num_layers)+" "+str(batch_size))
+        #print(str(embedding_dim)+" "+str(hidden_units)+" "+str(num_layers)+" "+str(batch_size))
         self.embedding_layer = torch.nn.Embedding(vocab_size,self.embedding_dim).cuda()
 
         for layer in range(num_layers):
@@ -126,7 +126,7 @@ class LSTM(nn.Module):
             cell = LstmModule(input_units = self.embedding_dim, output_units = output_units, hidden_units = hidden_units, batch_size = batch_size,embedding_dim=embedding_dim)
             setattr(self, 'cell_{}'.format(layer), cell)
         
-        print("input-size "+str(input_units))
+        #print("input-size "+str(input_units))
         #self.embedding_layer = torch.nn.Embedding(vocab_size, self.embedding_dim).cuda()
         #print("vocabsize "+str(vocab_size))
         #self.embedding_layer = torch.nn.Embedding(vocab_size, self.embedding_dim).cuda()
@@ -149,31 +149,23 @@ class LSTM(nn.Module):
         layer_output = None
         all_layers_last_hidden = []
         state = None
-        max_time = len(input_)
+        #max_time=len(input_[0])  
         all_hidden, all_outputs = [], []
-        print("max_time "+str(max_time))
-        print("num_layers "+str(self.num_layers))
-        print("input_size "+str(input_.size()))
+        # print("max_time "+str(max_time))
+        # print("num_layers "+str(self.num_layers))
+        # print("input_size "+str(input_.size()))
 
         for layer in range(self.num_layers):
             cell = self.get_cell(layer)
-            #for time in range(max_time):
-            # print(input_.size())
-            # input_emb = self.embedding_layer(input_.long())
-            # print("input_emb "+str(input_emb.size()))
-            # #input_=input_.view(input_.shape[0], -1, self.embedding_dim)
-            # #input_emb = input_emb.view(self.batch_size, self.input_units, 1)
-
-            # state = cell(input_ = input_emb, hx = state)
-            # all_hidden.append(state.tolist())
-            # print("statesize "+str(state.size()))
-            # out = self.linear(state)
-            # all_outputs.append(out.tolist())
             for time in range(max_time):
-                print(input_.size())
-                print("input_emb "+str(self.embedding_layer(input_[time]).size()))
-                state = cell(input_ = self.embedding_layer(input_[time]), hx = state)
+                #print(time)
+                #print(input_.size())
+                input_emb = self.embedding_layer(input_[:,time].long())
+                #print("input_emb "+str(input_emb.size()))
+
+                state = cell(input_ = input_emb, hx = state)
                 all_hidden.append(state.tolist())
+                #print("statesize "+str(state.size()))
                 out = self.linear(state)
                 all_outputs.append(out.tolist())
         

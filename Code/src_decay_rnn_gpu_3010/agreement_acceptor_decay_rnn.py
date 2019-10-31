@@ -138,7 +138,8 @@ class RNNAcceptor(DECAY_RNN_Model):
                     tot += 1
                     y_test = np.asarray(y_test)
                     x_test = torch.tensor(x_test, dtype=torch.long).cuda()
-                    pred, _, _ = self.model(x_test)
+                    T=x_test.view(1,len(x_test))
+                    pred, _, _ = self.model(T)
                     if (pred[0][0] > pred[0][1]) :
                         predicted=0
                     else :
@@ -234,6 +235,7 @@ class RNNAcceptor(DECAY_RNN_Model):
 
     def results_batched(self):
         self.log('Processing test set')
+        print("Processing test set")
         predicted = []
         x_test = torch.tensor(self.X_test, dtype=torch.long).cuda()    
         # x_test = self.X_test
@@ -241,7 +243,8 @@ class RNNAcceptor(DECAY_RNN_Model):
 
         with torch.no_grad():
             for index in range(len(x_test)) :
-                pred, hidden, output = self.model.pred_forward(x_test[index])
+                T=x_test[index].view(1,len(x_test[index]))
+                pred, hidden, output = self.model(T)
                 if (pred[0][0] > pred[0][1]) :
                     predicted.append([0])
                 else :

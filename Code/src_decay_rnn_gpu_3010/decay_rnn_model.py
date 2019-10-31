@@ -113,7 +113,7 @@ class DECAY_RNN_Model(object):
     def pipeline(self, train = True, batched=False, batch_size = 32, shuffle = True, num_workers= 0,
                  load = False, model = '', test_size=7000, 
                  train_size=None, model_prefix='__', epochs=20, data_name='Not', 
-                 activation=False, df_name='_verbose_.pkl', load_data=False, 
+                 activation=False, df_name='_verbose_.pkl', load_data=False,learning_rate=0.1, 
                  save_data=False):
         self.batched= batched
         if (load_data):
@@ -130,7 +130,7 @@ class DECAY_RNN_Model(object):
             self.load_model(model)
         if (train) :
             if(batched):
-                self.train_batched(epochs, model_prefix, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+                self.train_batched(epochs, model_prefix, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,learning_rate=learning_rate)
             else:   
                 self.train(epochs, model_prefix)
         else:
@@ -265,7 +265,7 @@ class DECAY_RNN_Model(object):
                 max_acc = acc
 
 
-    def train_batched(self, n_epochs=10, model_prefix="__", batch_size=32, shuffle=True, learning_rate=20, num_workers=0):
+    def train_batched(self, n_epochs=10, model_prefix="__", batch_size=32, shuffle=True, learning_rate=0.1, num_workers=0):
         self.log('Training Batched')
         if not hasattr(self, 'model'):
             self.create_model_batched()
@@ -299,12 +299,10 @@ class DECAY_RNN_Model(object):
                 x_batch = x_batch.view(self.batch_size, self.maxlen).cuda()
                 y_batch = y_batch.view(self.batch_size).cuda()
                 batch_list.append((x_batch, y_batch))
-                # if batches_processed!=0 and batches_processed%10==0:
-                #     self.log("{}/{} Batches Processed".format(batches_processed, total_batches))
-                #     self.validate_training(batch_list)
 
                 if batches_processed!=0 and batches_processed%50 ==0 :
                     acc =  self.results_batched()
+                    result_dict = self.result_demarcated()
                     if (acc >= max_acc) :
                         model_name = model_prefix + '.pkl'
                         torch.save(self.model, model_name)
@@ -312,8 +310,8 @@ class DECAY_RNN_Model(object):
 
                 self.model.zero_grad()
                 output, _ , _  = self.model(x_batch)
-                print(output.size())
-                print(y_batch.size())
+                # print("osize "+str(output.size()))
+                # print(y_batch.size())
                 loss = loss_function(output,y_batch)
                 loss.backward(retain_graph=True)
                 optimizer.step()
