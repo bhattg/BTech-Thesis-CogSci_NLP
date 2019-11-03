@@ -107,11 +107,133 @@ class LSTMModel(object):
         with open('logs/grad_' + self.output_filename, 'a') as file:
             file.write(message + '\n')
 
+    def log_result(self, message):
+        with open('logs/result_' + self.output_filename, 'a') as file:
+            file.write(message + '\n')        
+##########################################################
+#### EXTERNAL ADDITION DONE TO GET LINZEN TESTED #########
+##########################################################
+
+    def external_result_logger(self, result_dict):
+        for keys in result_dict.keys():
+            message = str(keys)
+            message += "Accuracy on {} example is {}".format(result_dict[keys][-1], result_dict[keys][-2])
+            self.log_result(message)
+
+    def test_external(self, filename):
+    #     #filename contains the pickel files which contains the input and the corresponding target value for different 
+    #     #syntactic evaluation. 
+        test_data_dict = {}
+        for files in os.listdir(filename):
+    #         #tuple of list 
+            test_pickel = open(os.path.join(filename, files), 'rb')
+            test_data_dict[files] = pickle.load(test_pickel)
+
+        results = self.external_testing(test_data_dict)
+        self.external_result_logger(results)
+
+    def external_testing(self,d=None):
+        batch_size_testing=1
+        testing_result={}
+        for files in d.keys():
+            X_testing_perFile, Y_testing_perFile = d[files]   #x is list of numpy array
+            len_X_testing = len(X_testing_perFile)
+            assert len(X_testing_perFile) == len(Y_testing_perFile), "Assert failed at external testing!!"
+            predicted=[]
+            with torch.no_grad():
+                for i in range(len_X_testing):
+                    x_test =  X_testing_perFile[i]
+                    x_test = torch.tensor(x_test, dtype=torch.long).to(device)
+                    x_test = x_test.view(batch_size_testing, self.maxlen)
+                    pred, hidden, output = self.model(x_test)
+                    if pred[0][0]> pred[0][1]:
+                        predicted.append(0)
+                    else:
+                        predicted.append(1)
+            testing_result[files] = (Y_testing_perFile, predicted, np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing, len_X_testing)
+            acc= (np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing)
+            print(str(files) + " "+str(acc)+" "+str(len_X_testing))
+        return testing_result
+    
+    def load_external_testing(self, filename, save_processed_data = True):
+        ex_list = []
+        for files in os.listdir(filename):
+            pickel = pickle.load(open(os.path.join(filename, files), 'rb'))
+            ex_list.append((pickel, files))
+        test_example={}
+        for i in range(len(ex_list)):
+            for keys in ex_list[i][0].keys():
+                list1= ex_list[i][0][keys]
+                if len(list1[0]) > 2:
+                    continue
+                if (ex_list[i][1], keys) in test_example.keys():
+                    pass
+                else:
+                    test_example[(ex_list[i][1], keys)]=[]
+                for X in list1:            
+                    x, x_neg = X
+                    test_example[(ex_list[i][1], keys)].append((x, 0))
+                    test_example[(ex_list[i][1], keys)].append((x_neg, 1))
+        external_testing_dict={}
+        for keys in test_example.keys():
+            x_test_, y_test_ = zip(*test_example[keys])
+            external_testing_dict[keys] = (x_test_, y_test_)
+        # At this time we have a dictionary that has key -->(filename, property) and value a tuple  (X_test(string form), y_test)
+
+        final_dict_testing = self.valid_input(external_testing_dict)
+
+        if save_processed_data:
+            for keys in final_dict_testing.keys():
+                pickle_out = open(os.path.join("Testing_data", str(keys))+".pkl", "wb")
+                pickle.dump(final_dict_testing[keys], pickle_out)
+
+        results = self.external_testing(final_dict_testing)
+        self.external_result_logger(results)
+
+
+    def valid_input(self,  external_testing_dict):
+        final_dict_testing={}
+        for keys in external_testing_dict.keys():
+            x = []
+            y = []
+            X_test, Y_test = external_testing_dict[keys]
+            for i in range(len(X_test)):
+                x_ex = []
+                flag=True
+                example = X_test[i]
+                token_list = example.split()
+                if len(token_list)>self.maxlen:
+                    continue
+                for tokens in token_list:
+                    if not tokens in self.vocab_to_ints.keys():   #if unknown character, leave the example 
+                        flag=False
+                        break
+                    x_ex.append(self.vocab_to_ints[tokens])
+                if not flag:
+                    continue
+                x.append(x_ex)
+                y.append(Y_test[i])
+
+            final_dict_testing[keys]=(x, y)
+        return final_dict_testing
+
+##########################################################
+####  AUTHOR @GANTAVYA BHATT #############################
+##########################################################
+
+# IF YOU HAVE AN EXTERNAL LNIZEN .PKL, THEN USE load_data=False, test_external=True, load_external=False, give value to pickel folder 
+# external_file = address of saved modified pkl inputs 
+#pickel folder: address of linzen pikel 
+
+
+
+
+
     def pipeline(self, train = True, batched=True, batch_size = 32, shuffle = True, num_workers= 0,
                  load = False, model = '', test_size=7000, 
                  train_size=None, model_prefix='__', epochs=20, data_name='Not', 
                  activation=False, df_name='_verbose_.pkl', load_data=False, 
-                 save_data=False):
+                 save_data=False, test_external=False, load_external=False, external_file=None, pickel_folder=None):
         
 
         if (load_data):
@@ -130,8 +252,13 @@ class LSTMModel(object):
             self.train_batched(epochs, model_prefix, batch_size=batch_size,learning_rate=0.002,shuffle=shuffle, num_workers=num_workers)
 
         else:
-            result_dict= self.test_model()
-            print(result_dict)
+            if test_external:
+                if load_external:
+                    self.test_external(external_file)
+                else :
+                    self.load_external_testing(pickel_folder, True)
+            else:
+                result_dict= self.test_model()
         
         print('Data : ',  data_name)
         self.log(data_name)

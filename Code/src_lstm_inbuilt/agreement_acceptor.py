@@ -234,7 +234,7 @@ class RNNAcceptor(LSTMModel):
 
         self.log('Creating Batched model')
         self.log('vocab size : ' + str(len(self.vocab_to_ints)))
-        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, batch_size=self.batch_size, embedding_dim=self.embedding_size, num_layers=2).to(device)
+        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, batch_size=self.batch_size, embedding_dim=self.embedding_size).to(device)
 
 
     # def create_model(self):
