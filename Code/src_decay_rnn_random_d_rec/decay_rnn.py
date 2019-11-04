@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 import numpy as np
 import math
+from numpy.random import binomial
 # import torch.nn.Parameter as Parameter
 
 _VF = torch._C._VariableFunctions
@@ -16,6 +17,13 @@ def rectify(x):
     relu = nn.ReLU()
     return relu(x)
     # return x
+
+def give_bin(p):
+    a = binomial(n=1, p=p)
+    if (a==0):
+        return 1
+    else:
+        return -1
 
 class LstmModule(nn.Module):
 
@@ -31,8 +39,8 @@ class LstmModule(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.rate = 0.2 # the number of -1 or inhib neurons as per Dale's principle
-        self.up_limit = 0.23*self.hidden_size
-        self.lower_limit = 0.17*self.hidden_size
+        self.up_lim = 0.23*self.hidden_size
+        self.lower_lim = 0.17*self.hidden_size
         self.batch_size = batch_size
         self.bias = bias
         self.num_chunks = num_chunks
@@ -74,7 +82,7 @@ class LstmModule(nn.Module):
         if sum(a)>= self.lower_lim and sum(a) <= self.up_lim:
             return d_rec
         else :
-            return give_d_rec()
+            return get_d_rec()
         
 
     def forward(self, input_, hx = None):
