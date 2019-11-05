@@ -48,7 +48,7 @@ class LstmModule(nn.Module):
         self.embedding_dim=embedding_dim
         self.weight_ih = nn.Parameter(torch.Tensor(embedding_dim, num_chunks*hidden_size).to(device))
         self.weight_hh = nn.Parameter(torch.Tensor(num_chunks * hidden_size, hidden_size).to(device))
-        self.d_rec = nn.Parameter(torch.zeros(num_chunks * hidden_size, hidden_size).cuda(),requires_grad=False)
+        self.d_rec = nn.Parameter(torch.zeros(num_chunks * hidden_size, hidden_size).to(device),requires_grad=False)
         
         if bias:
             self.bias_ih = nn.Parameter(torch.Tensor(num_chunks * hidden_size).to(device))

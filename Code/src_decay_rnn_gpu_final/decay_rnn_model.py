@@ -284,7 +284,7 @@ class DECAY_RNN_Model(object):
         #creating batches --- our batchify 
         # batch size everywhere should be taken as the self.batch size provided in the init 
         new_BatchedDataset =  BatchedDataset(x_train, y_train)
-        DataGenerator =  DataLoader(new_BatchedDataset, batch_size= self.batch_size, shuffle=shuffle, num_workers=num_workers, drop_last=True)
+        DataGenerator =  DataLoader(new_BatchedDataset, batch_size= self.batch_size, shuffle=shuffle, num_workers=num_workers, drop_last=False)
         
         self.log("Started Training Phase !!")
         print("Started Training Phase !!")

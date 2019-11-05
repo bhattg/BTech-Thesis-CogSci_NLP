@@ -207,7 +207,6 @@ class RNNAcceptor(DECAY_RNN_Model):
 
     def results_batched(self):
         self.log('Processing cross validataion set')
-        print("Processing cross validataion set")
         predicted = []
         testing_batches = len(self.X_test)//self.testing_batch_size
         x_test = np.asarray(self.X_test)
@@ -217,15 +216,18 @@ class RNNAcceptor(DECAY_RNN_Model):
         tot_testing_ex = 0
         acc = 0
         for x_, y_ in DataGenerator:
-            tot_testing_ex+=x_.shape[0]
-            assert x_.shape[0]==y_.shape[0]
-            x_  = x_.view(tot_testing_ex, -1).to(device)
-            y_  = y_.view(tot_testing_ex,).to(device)
+            m = x_.shape[0]
+            tot_testing_ex+=m
+            assert m==y_.shape[0]
+            x_  = x_.view(m, -1).to(device)
+            y_  = y_.view(m,).to(device)
             out, _, _ = self.model(x_)
             y_hat = torch.argmax(out, dim=1)
-            y_hat = y_hat.view(self.testing_batch_size, )
+            y_hat = y_hat.view(m, )
             acc += torch.sum(y_hat == y_).item()
         self.log("Accuracy on testing set is {}".format(acc/tot_testing_ex))
+
+        return acc
 
     # def create_model(self):
     #     self.log('Creating model')
