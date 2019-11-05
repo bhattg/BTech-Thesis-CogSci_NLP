@@ -319,6 +319,9 @@ class DECAY_RNN_Model(object):
                     else:
                         if patience_counter>=patience:
                             # reschedule the learning rate 
+                            print("Re-Scheduling learning rate ")
+                            self.log("Rescheduling learning rate")
+                            
                             for g in optimizer.param_groups:
                                 g['lr'] = factor*g['lr']
                             patience_counter=0
