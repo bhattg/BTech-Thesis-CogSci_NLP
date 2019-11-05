@@ -252,10 +252,18 @@ class DECAY_RNN_Model(object):
         self.log('Training Batched')
         if not hasattr(self, 'model'):
             self.create_model_batched()
-        
+
+##############################################################################
+################### OPTIMIZER RELATED  @ AUTHOR gantavya #####################
         loss_function = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr = learning_rate)
+        patience = 2 # used to reschedule the learning rate. 
+        patience_counter = 0
+        factor = 0.8
         max_acc = 0
+##############################################################################
+##############################################################################
+
         self.log(len(self.X_train))
 
         '''
@@ -288,7 +296,7 @@ class DECAY_RNN_Model(object):
         
         self.log("Started Training Phase !!")
         print("Started Training Phase !!")
-
+        
         for epoch in range(n_epochs) :
             
             self.log('epoch : ' + str(epoch))
@@ -308,6 +316,16 @@ class DECAY_RNN_Model(object):
                         model_name = model_prefix + '.pkl'
                         torch.save(self.model, model_name)
                         max_acc = acc   
+                    else:
+                        if patience_counter>=patience:
+                            # reschedule the learning rate 
+                            for g in optimizer.param_groups:
+                                g['lr'] = factor*g['lr']
+                            patience_counter=0
+                        else:
+                            patience_counter+=1
+
+
                 for name,param in self.model.named_parameters():
                     if(name=="cell_0.rgate"):
                         self.log_alpha(str(param))                 
