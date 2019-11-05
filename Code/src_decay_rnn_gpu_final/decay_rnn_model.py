@@ -257,7 +257,7 @@ class DECAY_RNN_Model(object):
 ################### OPTIMIZER RELATED  @ AUTHOR gantavya #####################
         loss_function = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr = learning_rate)
-        patience = 2 # used to reschedule the learning rate. 
+        patience = 10# used to reschedule the learning rate. 
         patience_counter = 0
         factor = 0.8
         max_acc = 0
@@ -319,12 +319,13 @@ class DECAY_RNN_Model(object):
                     else:
                         if patience_counter>=patience:
                             # reschedule the learning rate 
-                            print("Re-Scheduling learning rate ")
-                            self.log("Rescheduling learning rate")
-                            
                             for g in optimizer.param_groups:
                                 g['lr'] = factor*g['lr']
+                                new_lr = g['lr']
                             patience_counter=0
+                            print("Re-Scheduling learning rate to {}".format(new_lr))
+                            self.log("Rescheduling learning rate to {}".format(new_lr))
+
                         else:
                             patience_counter+=1
 

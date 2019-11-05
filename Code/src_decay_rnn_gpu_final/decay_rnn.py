@@ -153,19 +153,28 @@ class LSTM(nn.Module):
             cell.reset_parameters()
 
     def forward(self, input_, max_time = 50) :
-        layer_output = None
-        all_layers_last_hidden = []
-        state = None
-        all_hidden, all_outputs = [], []
+        # we will keep the format same as the LSTMs
+        # we will pass on 2 outputs  - one being all_h at the last layer, the other being all h at last time stamp and the final one being the 
+        # last h of the last layer on which we will apply the softmax. 
+        # the input size will be of form (batch_size, feature_len)
+
+        max_time  =  min(input_.shape[1], max_time)
+        h_n =[]
+        m = input_.shape[0]
         for layer in range(self.num_layers):
+            state=None
             cell = self.get_cell(layer)
+            all_hidden, all_outputs = [],[]
             for time in range(max_time):
-                input_emb = self.embedding_layer(input_[:,time].long())
+                if layer==0:
+                    input_emb = self.embedding_layer(input_[:,time].long())
                 state = cell(input_ = input_emb, hx = state)
-                all_hidden.append(state.tolist())
+                all_hidden.append(state)
                 out = self.linear(state)
-                all_outputs.append(out.tolist())
+                all_outputs.append(out)
+            h_n.append(state)
+            input_emb=torch.tensor(all_hidden)
         
         hlast = state
         softmax_out = self.linear(hlast)
-        return softmax_out, all_hidden, all_outputs
+        return softmax_out, all_hidden, h_n
