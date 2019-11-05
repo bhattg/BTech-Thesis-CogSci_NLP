@@ -135,7 +135,7 @@ class LSTM(nn.Module):
 
         for layer in range(num_layers):
             layer_input_units = input_units if layer == 0 else hidden_units
-            cell = LstmModule(input_units = self.embedding_dim, output_units = output_units, hidden_units = hidden_units, batch_size = batch_size,embedding_dim=embedding_dim)
+            cell = LstmModule(input_units = layer_input_units, output_units = output_units, hidden_units = hidden_units, batch_size = batch_size,embedding_dim=layer_input_units)
             setattr(self, 'cell_{}'.format(layer), cell)
         
 
