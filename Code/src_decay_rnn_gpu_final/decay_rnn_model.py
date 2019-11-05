@@ -307,7 +307,10 @@ class DECAY_RNN_Model(object):
                     if (acc >= max_acc) :
                         model_name = model_prefix + '.pkl'
                         torch.save(self.model, model_name)
-                        max_acc = acc                    
+                        max_acc = acc   
+                for name,param in self.model.named_parameters():
+                    if(name=="cell_0.rgate"):
+                        self.log_alpha(str(param))                 
 
                 self.model.zero_grad()
                 output, _ , _  = self.model(x_batch)
