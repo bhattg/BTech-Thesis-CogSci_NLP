@@ -169,14 +169,12 @@ class LSTM(nn.Module):
                 if layer==0:
                     input_emb = self.embedding_layer(input_[:,time].long())
                 state = cell(input_ = input_emb, hx = state)
-                all_hidden.append(state.tolist())
+                all_hidden.append(state)
                 out = self.linear(state)
-                all_outputs.append(out.tolist())
-            h_n.append(state.tolist())
-            input_emb=torch.tensor(all_hidden).to(device)
+                all_outputs.append(out)
+            h_n.append(state)
+            input_emb=torch.tensor(all_hidden)
         
         hlast = state
-        all_outputs = torch.tensor(all_outputs).to(device)
         softmax_out = self.linear(hlast)
-        h_n.reverse()
-        return softmax_out, input_emb, torch.tensor(h_n).to(device)
+        return softmax_out, all_hidden, h_n.reverse()
