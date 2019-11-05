@@ -1,8 +1,10 @@
 import os
 import os.path as op
 
-
 root = os.environ['RNN_AGREEMENT_ROOT']
+#root="D:\\Semester_7\\BTP\\rnn_cognitive_models\\"
+external_file= os.path.join(root,"Testing_data")
+pickel_folder = os.path.join(root, "templates")
 data_dir = op.join(root, 'data')
 parsed_wiki = op.join(data_dir, 'wikipedia.wcase.nodups.parsed.fixed.gz')
 parsed_wiki_subset = op.join(data_dir, 'wikipedia.parsed.subset.50.gz')

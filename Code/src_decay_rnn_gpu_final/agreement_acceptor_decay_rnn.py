@@ -9,13 +9,15 @@ import pandas as pd
 import random
 import six
 import pickle
-from decay_rnn_model import DECAY_RNN_Model
+from decay_rnn_model import DECAY_RNN_Model, BatchedDataset
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 from decay_rnn import LSTM
 from utils import gen_inflect_from_vocab, dependency_fields, dump_dict_to_csv
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-cpu = torch.device("cpu")
-device = cpu
+print(device)
+
 
 def pad_sequences(sequences, maxlen=None, dtype='int32',
                   padding='pre', truncating='pre', value=0.):
@@ -78,21 +80,17 @@ class RNNAcceptor(DECAY_RNN_Model):
 
     def update_dump_dict(self, key,x_test_minibatch, y_test_minibatch, predicted):
 
-        # x =  x_test_minibatch.numpy().tolist()
-        # y =  y_test_minibatch.numpy().tolist()
         x =  x_test_minibatch.tolist()
         y =  y_test_minibatch.tolist()
         p =  predicted
-
-        # for i in range(len(x)):
-        #     # print(type(x[i]))
-        #     string =  self.input_to_string(x[i])
-        #     self.dump_dict[key].append((string, y[i], p))
+        for i in range(len(x)):
+            string =  self.input_to_string(x[i])
+            self.dump_dict[key].append((string, y[i], p))
         string =  self.input_to_string(x)
         self.dump_dict[key].append((string, y, p))
 
     def test_model(self):
-        # create the batched examples of data
+        # we will do this in batched fashion
         print("Entered testing phase")
         result_dict = {}
         self.dump_dict = {}
@@ -101,20 +99,26 @@ class RNNAcceptor(DECAY_RNN_Model):
 
         with torch.no_grad():
             for keys in (self.testing_dict.keys()):
+                x_ , y_ = zip(*self.testing_dict[keys])
+                x_ = np.asarray(list(x_))
+                y_ = np.asarray(list(y_))
+                batch_generator = BatchedDataset(x_, y_)
+                DataGenerator = DataLoader(batch_generator, batch_size=self.batch_size, drop_last=False) # we should not drop the last ones, its bad
                 self.dump_dict[keys]=[]
                 accuracy=0
                 total_example=0
-                for x_test, y_test in self.testing_dict[keys]:              
-                    total_example += 1
-                    y_test = np.asarray(y_test)
-                    x_test = torch.tensor(x_test, dtype=torch.long)
+                for x_test, y_test in DataGenerator:
+                    x_test = torch.tensor(x_test, dtype=torch.long).to(device)
+                    y_test = torch.tensor(y_test, dtype=torch.long).to(device)
+                    m = x_test.shape[0] 
+                    total_example += m
+                    assert m==y_test.shape[0] 
+                    x_test = x_test.view(m, -1)
+                    y_test = y_test.view(m,) 
                     pred, _, _ = self.model(x_test)
-                    if (pred[0][0] > pred[0][1]) :
-                        predicted = 0
-                    else :
-                        predicted = 1
-                    if(predicted==(y_test)) :
-                        accuracy+=1
+                    y_hat = torch.argmax(pred, dim =1)
+                    y_hat = y_hat.view(m,)
+                    accuracy+= torch.sum(y_hat == y_test).item()
                     self.update_dump_dict(keys, x_test, y_test, predicted)
 
                 result_dict[keys] = (accuracy/total_example, total_example)
@@ -123,31 +127,6 @@ class RNNAcceptor(DECAY_RNN_Model):
         self.log(str(result_dict))
         return result_dict
 
-    def result_demarcated(self):
-        if not hasattr(self, "testing_dict"):
-            self.demark_testing()
-
-        result_dict={}
-        with torch.no_grad():
-            for key in self.testing_dict.keys():
-                predicted=[]
-                accuracy=0
-                tot=0
-                for x_test, y_test in self.testing_dict[key]:
-                    tot += 1
-                    y_test = np.asarray(y_test)
-                    x_test = torch.tensor(x_test, dtype=torch.long)
-                    pred, _, _ = self.model(x_test)
-                    if (pred[0][0] > pred[0][1]) :
-                        predicted=0
-                    else :
-                        predicted=1
-
-                    if(predicted==(y_test)) :
-                        accuracy+=1
-                result_dict[key] = (accuracy/tot , tot)
-        self.log(str(result_dict))
-        return result_dict
 
     def create_train_and_test(self, examples, test_size, data_name, save_data=False):
         d = [[], []]
@@ -220,147 +199,170 @@ class RNNAcceptor(DECAY_RNN_Model):
             self.deps_test = deps[n_train:]
 
 
-    def create_model_batched(self, batch_size=32):
+    def create_model_batched(self):
         self.log('Creating Batched model')
         self.log('vocab size : ' + str(len(self.vocab_to_ints)))
-        self.model = batch_lstm.LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, batch_size=batch_size, embedding_dim=self.embedding_size)#.to(self.device)
+        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, batch_size=self.batch_size,embedding_dim=self.embedding_size).to(device)
 
-
-    def create_model(self):
-        self.log('Creating model')
-        self.log('vocab size : ' + str(len(self.vocab_to_ints)))
-        self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, embedding_dim=self.embedding_size)#.to(device)
 
     def results_batched(self):
-        self.log('Processing test set')
+        self.log('Processing cross validataion set')
+        print("Processing cross validataion set")
         predicted = []
-        x_test = torch.tensor(self.X_test, dtype=torch.long)#.to(self.device)    
-        # x_test = self.X_test
-        self.log(str(len(self.X_train)) + ', ' + str(len(x_test)))
+        testing_batches = len(self.X_test)//self.testing_batch_size
+        x_test = np.asarray(self.X_test)
+        y_test = np.asarray(self.Y_test)
+        test_batch_dataset = BatchedDataset(x_test, y_test)
+        DataGenerator =  DataLoader(test_batch_dataset, batch_size= self.testing_batch_size, shuffle=False, num_workers=0, drop_last=False)        
+        tot_testing_ex = 0
+        acc = 0
+        for x_, y_ in DataGenerator:
+            tot_testing_ex+=x_.shape[0]
+            assert x_.shape[0]==y_.shape[0]
+            x_  = x_.view(tot_testing_ex, -1).to(device)
+            y_  = y_.view(tot_testing_ex,).to(device)
+            out, _, _ = self.model(x_)
+            y_hat = torch.argmax(out, dim=1)
+            y_hat = y_hat.view(self.testing_batch_size, )
+            acc += torch.sum(y_hat == y_).item()
+        self.log("Accuracy on testing set is {}".format(acc/tot_testing_ex))
 
-        with torch.no_grad():
-            for index in range(len(x_test)) :
-                pred, hidden, output = self.model.pred_forward(x_test[index])
-                if (pred[0][0] > pred[0][1]) :
-                    predicted.append([0])
-                else :
-                    predicted.append([1])
-            recs = []
-            columns = ['correct', 'prediction', 'label'] + dependency_fields
-            for dep, prediction in zip(self.deps_test, predicted):
-                prediction = self.code_to_class[prediction[0]]
-                recs.append((prediction == dep['label'], prediction, dep['label']) + tuple(dep[x] for x in dependency_fields))
+    # def create_model(self):
+    #     self.log('Creating model')
+    #     self.log('vocab size : ' + str(len(self.vocab_to_ints)))
+    #     self.model = LSTM(input_units = self.maxlen ,hidden_units = self.hidden_dim, vocab_size = len(self.vocab_to_ints)+1, embedding_dim=self.embedding_size).to(device)
+
+
+    # def results(self):
+    #     self.log('Processing test set')
+    #     predicted = []
+    #     x_test = torch.tensor(self.X_test, dtype=torch.long).to(device)
+    #     # x_test = self.X_test
+    #     self.log(str(len(self.X_train)) + ', ' + str(len(x_test)))
+
+    #     with torch.no_grad():
+    #         for index in range(len(x_test)) :
+    #             pred, hidden, output = self.model(x_test[index])
+    #             if (pred[0][0] > pred[0][1]) :
+    #                 predicted.append([0])
+    #             else :
+    #                 predicted.append([1])
+    #         recs = []
+    #         columns = ['correct', 'prediction', 'label'] + dependency_fields
+    #         for dep, prediction in zip(self.deps_test, predicted):
+    #             prediction = self.code_to_class[prediction[0]]
+    #             recs.append((prediction == dep['label'], prediction, dep['label']) + tuple(dep[x] for x in dependency_fields))
         
-        self.test_results = pd.DataFrame(recs, columns=columns)
-        xxx = self.test_results['correct']
-        self.log('Accuracy : ' + str(sum(xxx)))
-        return sum(xxx)
+    #     self.test_results = pd.DataFrame(recs, columns=columns)
+    #     xxx = self.test_results['correct']
+    #     self.log('Accuracy : ' + str(sum(xxx)))
+    #     return sum(xxx)
 
-    def results(self):
-        self.log('Processing test set')
-        predicted = []
-        x_test = torch.tensor(self.X_test, dtype=torch.long)#.to(cpu)
-        # x_test = self.X_test
-        self.log(str(len(self.X_train)) + ', ' + str(len(x_test)))
+    # def validate_training(self, batch_list):
+    #     # This function will evaluate the training accuracy for the batches so far. 
+    #     validation_size=len(batch_list) 
+    #     accurate = 0
+    #     total = 0
+    #     self.log("Started Training data validataion")
+    #     self.log("Validating on {} batches of training data".format(validataion_size))
+    #     total_validation_done = 0
+    #     with torch.no_grad():
+    #         for x_val, y_val in batch_list:
+    #             pred, hidden, output = self.model(x_val)
+    #             for i in range(pred.shape[0]):
+    #                 total+=1
+    #                 if pred[i][0]>pred[i][1]:
+    #                     if y_val[i].item()==0 :
+    #                         accurate=accurate+1
+    #                 if pred[i][0]<pred[i][1]:
+    #                     if y_val[i].item()==1 :
+    #                         accurate=accurate+1
 
-        with torch.no_grad():
-            for index in range(len(x_test)) :
-                pred, hidden, output = self.model(x_test[index])
-                if (pred[0][0] > pred[0][1]) :
-                    predicted.append([0])
-                else :
-                    predicted.append([1])
-            recs = []
-            columns = ['correct', 'prediction', 'label'] + dependency_fields
-            for dep, prediction in zip(self.deps_test, predicted):
-                prediction = self.code_to_class[prediction[0]]
-                recs.append((prediction == dep['label'], prediction, dep['label']) + tuple(dep[x] for x in dependency_fields))
+    #     self.log("Total accurate : {}/{}".format(accurate, total))
+    #     print("Total accurate : {}/{}".format(accurate, total))
+
+    # def result_demarcated(self):
+    #     if not hasattr(self, "testing_dict"):
+    #         self.demark_testing()
+
+    #     result_dict={}
+    #     with torch.no_grad():
+    #         for key in self.testing_dict.keys():
+    #             predicted=[]
+    #             accuracy=0
+    #             tot=0
+    #             for x_test, y_test in self.testing_dict[key]:
+    #                 tot += 1
+    #                 y_test = np.asarray(y_test)
+    #                 x_test = torch.tensor(x_test, dtype=torch.long).to(device)
+    #                 T=x_test.view(1,len(x_test))
+    #                 pred, _, _ = self.model(T)
+    #                 if (pred[0][0] > pred[0][1]) :
+    #                     predicted=0
+    #                 else :
+    #                     predicted=1
+
+    #                 if(predicted==(y_test)) :
+    #                     accuracy+=1
+    #             result_dict[key] = (accuracy/tot , tot)
+    #     self.log(str(result_dict))
+    #     return result_dict
+
+
+    # def results_verbose(self, df_name='_verbose_.pkl'):
+    #     self.log('Processing test set')
+    #     predicted, all_hidden, all_output = [], [], []
+    #     x_test = torch.tensor(self.X_test, dtype=torch.long).to(device)
+    #     self.log(str(len(self.X_train)) + ', ' + str(len(x_test)))
+
+    #     with torch.no_grad():
+    #         for index in range(len(x_test)) :
+    #             if (index % 1000 == 0):
+    #                 self.log(index)
+    #             pred, hidden, output = self.model(x_test[index])
+    #             # all_hidden.append(hidden)
+    #             # all_output.append(output)
+    #             if (pred[0][0] > pred[0][1]) :
+    #                 predicted.append([0])
+    #             else :
+    #                 predicted.append([1])
+    #         recs = []
+    #         columns = ['correct', 'prediction', 'label'] + dependency_fields
+    #         for dep, prediction in zip(self.deps_test, predicted):
+    #             prediction = self.code_to_class[prediction[0]]
+    #             recs.append((prediction == dep['label'], prediction, dep['label']) + tuple(dep[x] for x in dependency_fields))
         
-        self.test_results = pd.DataFrame(recs, columns=columns)
-        xxx = self.test_results['correct']
-        self.log('Accuracy : ' + str(sum(xxx)))
-        return sum(xxx)
+    #     self.test_results = pd.DataFrame(recs, columns=columns)
+    #     self.test_results.to_pickle(df_name)
+    #     # self.test_results['activations'] = all_hidden
+    #     # self.test_results['outputs'] = all_output
+    #     # self.test_results.to_pickle(df_name)
+    #     xxx = self.test_results['correct']
+    #     self.log('Accuracy : ' + str(sum(xxx)))
+    #     return sum(xxx)
 
-    def validate_training(self, batch_list):
-        # This function will evaluate the training accuracy for the batches so far. 
-        validation_size=len(batch_list) 
-        accurate = 0
-        total = 0
-        self.log("Started Training data validataion")
-        self.log("Validating on {} batches of training data".format(validataion_size))
-        total_validation_done = 0
-        with torch.no_grad():
-            for x_val, y_val in batch_list:
-                pred, hidden, output = self.model(x_val)
-                for i in range(pred.shape[0]):
-                    total+=1
-                    if pred[i][0]>pred[i][1]:
-                        if y_val[i].item()==0 :
-                            accurate=accurate+1
-                    if pred[i][0]<pred[i][1]:
-                        if y_val[i].item()==1 :
-                            accurate=accurate+1
-
-        self.log("Total accurate : {}/{}".format(accurate, total))
-        print("Total accurate : {}/{}".format(accurate, total))
-
-
-
-
-    def results_verbose(self, df_name='_verbose_.pkl'):
-        self.log('Processing test set')
-        predicted, all_hidden, all_output = [], [], []
-        x_test = torch.tensor(self.X_test, dtype=torch.long)
-        self.log(str(len(self.X_train)) + ', ' + str(len(x_test)))
-
-        with torch.no_grad():
-            for index in range(len(x_test)) :
-                if (index % 1000 == 0):
-                    self.log(index)
-                pred, hidden, output = self.model(x_test[index])
-                # all_hidden.append(hidden)
-                # all_output.append(output)
-                if (pred[0][0] > pred[0][1]) :
-                    predicted.append([0])
-                else :
-                    predicted.append([1])
-            recs = []
-            columns = ['correct', 'prediction', 'label'] + dependency_fields
-            for dep, prediction in zip(self.deps_test, predicted):
-                prediction = self.code_to_class[prediction[0]]
-                recs.append((prediction == dep['label'], prediction, dep['label']) + tuple(dep[x] for x in dependency_fields))
+    # def results_train(self):
+    #     self.log('Processing train set')
+    #     predicted = []
+    #     x_train = torch.tensor(self.X_train, dtype=torch.long).to(device)
+    #     self.log(len(x_train))
+    #     with torch.no_grad():
+    #         for index in range(len(x_train)) :
+    #             pred = self.model(x_train[index])
+    #             if (pred[0][0] > pred[0][1]) :
+    #                 predicted.append([0])
+    #             else :
+    #                 predicted.append([1])
+    #         recs = []
+    #         columns = ['correct', 'prediction', 'label'] + dependency_fields
+    #         for dep, prediction in zip(self.deps_train, predicted):
+    #             prediction = self.code_to_class[prediction[0]]
+    #             recs.append((prediction == dep['label'], prediction, dep['label']) + tuple(dep[x] for x in dependency_fields))
         
-        self.test_results = pd.DataFrame(recs, columns=columns)
-        self.test_results.to_pickle(df_name)
-        # self.test_results['activations'] = all_hidden
-        # self.test_results['outputs'] = all_output
-        # self.test_results.to_pickle(df_name)
-        xxx = self.test_results['correct']
-        self.log('Accuracy : ' + str(sum(xxx)))
-        return sum(xxx)
-
-    def results_train(self):
-        self.log('Processing train set')
-        predicted = []
-        x_train = torch.tensor(self.X_train, dtype=torch.long)#.to(cpu)
-        self.log(len(x_train))
-        with torch.no_grad():
-            for index in range(len(x_train)) :
-                pred = self.model(x_train[index])
-                if (pred[0][0] > pred[0][1]) :
-                    predicted.append([0])
-                else :
-                    predicted.append([1])
-            recs = []
-            columns = ['correct', 'prediction', 'label'] + dependency_fields
-            for dep, prediction in zip(self.deps_train, predicted):
-                prediction = self.code_to_class[prediction[0]]
-                recs.append((prediction == dep['label'], prediction, dep['label']) + tuple(dep[x] for x in dependency_fields))
-        
-        self.test_results = pd.DataFrame(recs, columns=columns)
-        xxx = self.test_results['correct']
-        self.log('Accuracy : ' + str(sum(xxx)))
-        return sum(xxx)
+    #     self.test_results = pd.DataFrame(recs, columns=columns)
+    #     xxx = self.test_results['correct']
+    #     self.log('Accuracy : ' + str(sum(xxx)))
+    #     return sum(xxx)
 
 class PredictVerbNumber(RNNAcceptor):
 

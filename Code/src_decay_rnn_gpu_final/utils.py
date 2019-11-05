@@ -92,7 +92,7 @@ def gen_inflect_from_vocab(vocab_file, freq_threshold=1000):
     nns = {}
     from_pos = {'NNS': nns, 'NN': nn, 'VBP': vbp, 'VBZ': vbz}
 
-    for line in open(vocab_file, errors='ignore'):
+    for line in open(vocab_file):
         if line.startswith(' '):   # empty string token
             continue
         word, pos, count = line.strip().split()
