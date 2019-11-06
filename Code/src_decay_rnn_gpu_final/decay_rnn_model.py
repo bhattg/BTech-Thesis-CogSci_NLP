@@ -260,6 +260,7 @@ class DECAY_RNN_Model(object):
         patience = 10# used to reschedule the learning rate. 
         patience_counter = 0
         factor = 0.8
+        threshold = 0.001
         max_acc = 0
 ##############################################################################
 ##############################################################################
@@ -322,6 +323,9 @@ class DECAY_RNN_Model(object):
                             for g in optimizer.param_groups:
                                 g['lr'] = factor*g['lr']
                                 new_lr = g['lr']
+                                if new_lr < threshold:
+                                	g['lr'] = threshold
+                                	new_lr= threshold
                             patience_counter=0
                             print("Re-Scheduling learning rate to {}".format(new_lr))
                             self.log("Rescheduling learning rate to {}".format(new_lr))
