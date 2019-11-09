@@ -173,8 +173,7 @@ class RNNAcceptor(DECAY_RNN_Model):
             self.vocab_to_ints = pickle.load(f)
 
         with open('../grammar_data/' + data_name + '_i2v.pkl', 'rb') as f:
-            self.ints_to_vocab = pickle.load(f
-)
+            self.ints_to_vocab = pickle.load(f)
         X = []
         Y = []
 

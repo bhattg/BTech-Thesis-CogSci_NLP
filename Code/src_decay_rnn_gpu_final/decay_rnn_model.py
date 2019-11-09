@@ -103,6 +103,11 @@ class DECAY_RNN_Model(object):
         with open('logs/' + self.output_filename, 'a') as file:
             file.write(str(message) + '\n')
 
+    def log_debugger(self, message):
+        with open('logs/debugger_' + self.output_filename, 'a') as file:
+            file.write(str(message) + '\n')
+
+
     def log_grad(self, message):
         with open('logs/grad_' + self.output_filename, 'a') as file:
             file.write(message + '\n')
@@ -117,13 +122,18 @@ class DECAY_RNN_Model(object):
                  activation=False, df_name='_verbose_.pkl', load_data=False,learning_rate=0.01, 
                  save_data=False):
 
+        self.batched= batched
         if (load_data):
             self.load_train_and_test(test_size, data_name)
         else :
             self.log('creating data from input data file {}'.format(str(self.filename)))
             examples = self.load_examples(data_name, save_data, None if train_size is None else train_size*10)
             self.create_train_and_test(examples, test_size, data_name, save_data)
-        self.create_model_batched()
+        
+        if batched:
+            self.create_model_batched()
+        else:
+            self.create_model()
         if (load) :
             self.load_model(model)
         if (train) :
@@ -181,74 +191,8 @@ class DECAY_RNN_Model(object):
         self.model = torch.load(model).to(device)        
 
             
-    # def train(self, n_epochs=10, model_prefix='__'):
-    #     self.log('Training')
-    #     if not hasattr(self, 'model'):
-    #         self.create_model()
-        
-    #     loss_function = nn.CrossEntropyLoss()
-    #     optimizer = optim.Adam(self.model.parameters(), lr = 0.001)
-    #     prev_param = list(self.model.parameters())[0].clone()
-    #     max_acc = 0
-    #     self.log(len(self.X_train))
-    #     x_train = torch.tensor(self.X_train, dtype=torch.long, requires_grad=False).to(device)
-    #     y_train = self.Y_train #torch.tensor(self.Y_train, requires_grad=False).cuda()
-    #     self.log('cpu to gpu')
-    #     # acc = self.results()
-    #     print(n_epochs)
 
-    #     fffstart = 0
-
-    #     for epoch in range(n_epochs) :
-    #         self.log('epoch : ' + str(epoch))
-    #         self.log_grad('epoch : ' + str(epoch))
-    #         self.log_alpha('epoch : ' + str(epoch))
-    #         for index in range(fffstart, len(x_train)) :
-    #             # self.log(index)
-    #             if ((index+1) % 1000 == 0) :
-    #                 self.log(index+1)
-    #                 if ((index+1) % 3000 == 0):
-    #                     acc = self.results()
-    #                     result_dict = self.result_demarcated()
-    #                     if (acc >= max_acc) :
-    #                         model_name = model_prefix + '.pkl'
-    #                         torch.save(self.model, model_name)
-    #                         max_acc = acc
-    #                 #_ =  self.test_model()
-                
-    #             self.model.zero_grad()
-    #             output, hidden, out = self.model(x_train[index])
-    #             if (y_train[index] == 0) :
-    #                 actual = torch.autograd.Variable(torch.tensor([0]), requires_grad=False).to(device)
-    #             else :
-    #                 actual = torch.autograd.Variable(torch.tensor([1]), requires_grad=False).to(device)
-                
-    #             loss = loss_function(output, actual)
-    #             loss.backward(retain_graph=True)
-    #             optimizer.step()
-
-    #             for name,param in self.model.named_parameters():
-    #                 if(name=="cell_0.rgate"):
-    #                     self.log_alpha(str(param))
-    #             if ((index) % 10 == 0) :
-    #                 counter = 0
-    #                 self.log_grad('index : ' + str(index))
-    #                 for param in self.model.parameters():                        
-    #                     if param.grad is not None:
-    #                         # print(counter, param.shape)
-    #                         self.log_grad(str(counter) + ' : ' + str(param.grad.norm().item()))
-    #                         counter += 1
-
-    #         fffstart = 0
-
-    #         acc = self.results()
-    #         if (acc > max_acc) :
-    #             model_name = model_prefix + '.pkl'
-    #             torch.save(self.model, model_name)
-    #             max_acc = acc
-
-
-    def train_batched(self, n_epochs=10, model_prefix="__", shuffle=True, learning_rate=0.01, num_workers=0, test_after_every= 50):
+    def train_batched(self, n_epochs=10, model_prefix="__", shuffle=True, learning_rate=0.01, num_workers=0, test_after_every=100, annealing=False):
         self.log('Training Batched')
         if not hasattr(self, 'model'):
             self.create_model_batched()
@@ -257,7 +201,7 @@ class DECAY_RNN_Model(object):
 ################### OPTIMIZER RELATED  @ AUTHOR gantavya #####################
         loss_function = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr = learning_rate)
-        patience = 10# used to reschedule the learning rate. 
+        patience = 5# used to reschedule the learning rate. 
         patience_counter = 0
         factor = 0.8
         threshold = 0.001
@@ -272,7 +216,7 @@ class DECAY_RNN_Model(object):
         so we will conver the training data to array
         '''
         
-        total_batches = int(len(self.X_train)/self.batch_size)   # we are dropping the remainder batches (As of now! :P)
+        total_batches = int(len(self.X_train)/self.batch_size)   # if len(x_train)%batch_size != 0 then total_batches +=1 (add one to the calc batches)
         x_train = np.asarray(self.X_train,dtype=int)   
         y_train = np.asarray(self.Y_train,dtype=int)
 
@@ -292,8 +236,9 @@ class DECAY_RNN_Model(object):
 
         #creating batches --- our batchify 
         # batch size everywhere should be taken as the self.batch size provided in the init 
+
         new_BatchedDataset =  BatchedDataset(x_train, y_train)
-        DataGenerator =  DataLoader(new_BatchedDataset, batch_size= self.batch_size, shuffle=shuffle, num_workers=num_workers, drop_last=False)
+        DataGenerator =  DataLoader(new_BatchedDataset, batch_size= self.batch_size, shuffle=True, num_workers=num_workers, drop_last=False)
         
         self.log("Started Training Phase !!")
         print("Started Training Phase !!")
@@ -317,21 +262,23 @@ class DECAY_RNN_Model(object):
                         model_name = model_prefix + '.pkl'
                         torch.save(self.model, model_name)
                         max_acc = acc   
-                    else:
-                        if patience_counter>=patience:
-                            # reschedule the learning rate 
-                            for g in optimizer.param_groups:
-                                g['lr'] = factor*g['lr']
-                                new_lr = g['lr']
-                                if new_lr < threshold:
-                                	g['lr'] = threshold
-                                	new_lr= threshold
-                            patience_counter=0
-                            print("Re-Scheduling learning rate to {}".format(new_lr))
-                            self.log("Rescheduling learning rate to {}".format(new_lr))
+                    else :
+                        if annealing:
+                            if patience_counter>=patience:
+                                # reschedule the learning rate 
+                                for g in optimizer.param_groups:
+                                    g['lr'] = factor*g['lr']
+                                    new_lr = g['lr']
+                                    if new_lr < threshold:
+                                        g['lr'] = threshold
+                                        new_lr= threshold
+                                patience_counter=0
+                                print("Re-Scheduling learning rate to {}".format(new_lr))
+                                self.log("Rescheduling learning rate to {}".format(new_lr))
 
-                        else:
-                            patience_counter+=1
+                            else:
+                                patience_counter+=1
+                        
 
 
                 for name,param in self.model.named_parameters():
