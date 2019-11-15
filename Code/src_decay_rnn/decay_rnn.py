@@ -110,9 +110,7 @@ class LSTM(nn.Module):
             setattr(self, 'cell_{}'.format(layer), cell)
         
         self.embedding_layer = torch.nn.Embedding(vocab_size, input_units)
-        # self.dropout_layer = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_units * num_layers, 2)
-        # self.softmax = nn.Softmax(dim=0)
         self.reset_parameters()
 
     def get_cell(self, layer):
@@ -134,8 +132,6 @@ class LSTM(nn.Module):
             cell = self.get_cell(layer)
 
             for time in range(max_time):
-                # print(time)
-                # inputx = torch.tensor(input_[time], requires_grad = False)#.to(device)
                 state = cell(input_ = self.embedding_layer(input_[time]), hx = state)
                 all_hidden.append(state.tolist())
                 out = self.linear(state)

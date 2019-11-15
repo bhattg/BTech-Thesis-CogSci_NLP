@@ -135,7 +135,6 @@ class DECAY_RNN_Model(object):
                 self.train(epochs, model_prefix)
         else:
             result_dict= self.test_model()
-        #    self.cross_validate(0)
             print(result_dict)
         print('Data : ',  data_name)
         self.log(data_name)
