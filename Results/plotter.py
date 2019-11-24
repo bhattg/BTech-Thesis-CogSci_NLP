@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 #root = "C:\\Users\\Asus\\Dropbox\\BTP_Gantavya_Hritik\\experiments\\Raw_Results\\FULL GRAMAR\\CNN_LATEST_WITH_SAVED_BANSAL_DATA\\logs"
-root = "D:\\Semester_7\\BTP\\gannu_pvn_full_logs\\logs_GRU\\"
+root = "D:\\Semester_7\\BTP\\BTech-Thesis-CognitionInLanguage\\Results\\"
 masterDict={} #key is the number of intervening noun
 	# val is the corresponding accuracy
 
@@ -30,7 +30,7 @@ def accuracy_plots_intervening_nouns(root,includeIntNoun=False):
 	# this function creates accuracy plots for different 
 	# number of intervening nouns along with the total
 	# accuracy
-	with open(os.path.join(root,"output_log.txt")) as file:
+	with open(os.path.join(root,"output_log_eirnn_pvn.txt")) as file:
 		lines=file.readlines()
 	checker={} #type dictionary
 	accuracy_list=[]
@@ -57,25 +57,35 @@ def accuracy_plots_intervening_nouns(root,includeIntNoun=False):
 
 	if(includeIntNoun):
 		x_,y_,z_=plot_with_int_nouns()
-		zipped=zip(x_[:7],y_[:7],z_[:7])
+		zipped=zip(x_[:8],y_[:8],z_[:8])
 		res=sorted(zipped,key = lambda x: x[0])
-		x_,y_,z_=zip(*res)
+		#x_,y_,z_=zip(*res)
+		d={0: (0.9279810582994694, 1146254), 2: (0.8422569743555762, 60364), 1: (0.8887360275150473, 180265), 3: (0.8020687587447531, 20012), 5: (0.7269949066213922, 2945), 4: (0.7638149815800246, 7329), 7: (0.6593220338983051, 590), 6: (0.7118367346938775, 1225), 8: (0.656934306569343, 274), 9: (0.6574074074074074, 108), 10: (0.625, 56), 11: (0.5, 34), 12: (0.8461538461538461, 13), 17: (1.0, 1), 13: (0.4, 10), 15: (0.5, 4), 16: (0.5, 2), 14: (1.0, 2), 18: (0.0, 2)}
+		x_=[i for i in range(8)]
+		y_=[96.38,93.56,90.39,86.84,82.89,79.08,75.92,69.32]
+		z_=[]
+		s=0
+		t=0
+		for h in x_:
+			t+=d[h][1]
+			s+=y_[h]*d[h][1]
+		print(s/t)
 		print(x_)
 		print(y_)
 		print(z_)
 
 		# fig=plt.figure()
 		# plt.subplot(2,1,1)
-		# plt.xlabel("Intervening Nouns")
-		# plt.ylabel("Accuracy(%)")
-		# plt.title("Accuracy of GRU with number of intervening nouns")
-		# marks=[True for i in range(len(x_))]
-		# plt.plot(x_,y_,marker='o',color='r')
+		plt.xlabel("Intervening Nouns")
+		plt.ylabel("Accuracy(%)")
+		plt.title("Accuracy of DecayRNN with number of intervening nouns")
+		marks=[True for i in range(len(x_))]
+		plt.plot(x_,y_,marker='o',color='r')
 
 		# plt.subplot(2,1,2)
-		plt.xlabel("Number of Noun Attractors")
-		plt.ylabel("log scale")
-		plt.plot(x_,z_,marker='o',color='r')
+		# plt.xlabel("Number of Noun Attractors")
+		# plt.ylabel("log scale")
+		# plt.plot(x_,z_,marker='o',color='r')
 		plt.grid()
 		plt.show()
 	else:
