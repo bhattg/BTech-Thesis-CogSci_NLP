@@ -1,9 +1,8 @@
-# BTech-Thesis-CognitionInLanguage
+# Undegraduate Thesis -  Examining Cognitively Plausible RNN Models For Linguistic Tasks
+
+* This repo contains the source codes, presentations and thesis for the undergraduate thesis.  
+* Authors - Gantavya Bhatt, Hritik Bansal 
 
 
-
-* This repo contains the source codes, ppt and thesis for the BTP 
-* Authors - hbansal, gbhatt
-
-* https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+* POS tags might be confusing for someone. Here is a key to the POS tags -  https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
 
