@@ -4,5 +4,5 @@
 * Authors - Gantavya Bhatt, Hritik Bansal 
 
 
-* POS tags might be confusing for someone. Here is a key to the POS tags -  https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+* POS tags might be confusing, here is a key to the POS tags -  https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
 
