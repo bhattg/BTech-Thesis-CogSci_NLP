@@ -58,7 +58,7 @@ class DECAY_RNN_Model(object):
         testing_dict={}
         assert len(X_test)==len(Y_test) and len(Y_test)==len(deps_test)
         for i in (range(len(X_test))):
-            key = deps_test[i]['n_intervening']
+            key = (deps_test[i]['n_intervening'], deps_test[i]['n_diff_intervening'])
             if not key in testing_dict.keys():
                 testing_dict[key]=[]
             testing_dict[key].append((X_test[i], Y_test[i]))
