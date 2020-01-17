@@ -76,29 +76,34 @@ def pad_sequences(sequences, maxlen=None, dtype='int32',
 class RNNAcceptor(DECAY_RNN_Model):
 
 
-    def update_dump_dict(self, key,x_test_minibatch, y_test_minibatch, predicted):
+    def update_dump_dict(self, key,x_test_minibatch, y_test_minibatch, predicted, all_output=None):
 
         # x =  x_test_minibatch.numpy().tolist()
         # y =  y_test_minibatch.numpy().tolist()
         x =  x_test_minibatch.tolist()
         y =  y_test_minibatch.tolist()
         p =  predicted
-
+        if all_output != None:
+            all_out = str(all_output)
         # for i in range(len(x)):
         #     # print(type(x[i]))
         #     string =  self.input_to_string(x[i])
         #     self.dump_dict[key].append((string, y[i], p))
         string =  self.input_to_string(x)
-        self.dump_dict[key].append((string, y, p))
+        if all_output != None:
+            self.dump_dict[key].append((string, y, p, all_out))
+        else:
+            self.dump_dict[key].append((string, y, p))
 
-    def test_model(self):
+
+    def test_model(self, time_stamp_outputs=False):
+        time_stamp_outputs=True
         # create the batched examples of data
         print("Entered testing phase")
         result_dict = {}
         self.dump_dict = {}
         if not hasattr(self,"testing_dict"):
             self.demark_testing()
-
         with torch.no_grad():
             for keys in (self.testing_dict.keys()):
                 self.dump_dict[keys]=[]
@@ -108,18 +113,19 @@ class RNNAcceptor(DECAY_RNN_Model):
                     total_example += 1
                     y_test = np.asarray(y_test)
                     x_test = torch.tensor(x_test, dtype=torch.long)
-                    pred, _, _ = self.model(x_test)
+                    if time_stamp_outputs:
+                        pred, _, all_output = self.model(x_test)
+                    else:
+                        pred, _, _ = self.model(x_test)                        
                     if (pred[0][0] > pred[0][1]) :
                         predicted = 0
                     else :
                         predicted = 1
                     if(predicted==(y_test)) :
                         accuracy+=1
-                    self.update_dump_dict(keys, x_test, y_test, predicted)
-
+                    self.update_dump_dict(keys, x_test, y_test, predicted, all_output)
                 result_dict[keys] = (accuracy/total_example, total_example)
-
-        dump_dict_to_csv(self.dump_dict)
+        dump_dict_to_csv(self.dump_dict, time_stamp_outputs=time_stamp_outputs)
         self.log(str(result_dict))
         return result_dict
 

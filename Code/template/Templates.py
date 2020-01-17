@@ -1,15 +1,3 @@
-# BTech-Thesis-CognitionInLanguage
-
-
-
-* This repo contains the source codes, ppt and thesis for the BTP 
-* Authors - hbansal, gbhatt
-
-* https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-
-# LOOKUP TABLE FOR TEMPLATE CONSTRUCTION SKELETON
-
-```
 class AgreementTemplate():
     def __init__(self):
         self.rules = {'obj_rel_across_anim': (['D', 'MS', 'C', 'D', 'ES', 'EV', 'MV'], {'match':([1],[6]), 'vary':[4,5]}),
@@ -44,6 +32,3 @@ class NPITemplate():
         # TO CREATE NEW CONSTRUCTIONS, PLEASE FOLLOW THIS FORMAT:
         # 'name': ([list of preterminals], None)
         # For NPIs, we aren't looking at sentences that are minimally different so the 'match/vary' schema in the AgreementTemplate doesn't work here
-
-
-```

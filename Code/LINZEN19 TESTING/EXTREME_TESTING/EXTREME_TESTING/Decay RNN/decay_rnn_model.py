@@ -14,7 +14,7 @@ import pickle
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import filenames
-from utils import deps_from_tsv
+from utils import deps_from_tsv, dump_template_waveforms
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 cpu = torch.device("cpu")
@@ -133,13 +133,14 @@ class DECAY_RNN_Model(object):
             test_pickel = open(os.path.join(filename, files), 'rb')
             test_data_dict[files] = pickle.load(test_pickel)
 
-        results = self.external_testing(test_data_dict)
+        results, waveform_dump_dict = self.external_testing(test_data_dict)
         self.external_result_logger(results)
 
     def external_testing(self,d=None):
         testing_result={}
+        waveform_dump_dict={}
         for files in d.keys():
-            X_testing_perFile, Y_testing_perFile = d[files]   #x is list of numpy array
+            X_sentences, X_testing_perFile, Y_testing_perFile = d[files]   #x is list of numpy array
             len_X_testing = len(X_testing_perFile)
             assert len(X_testing_perFile) == len(Y_testing_perFile), "Assert failed at external testing!!"
             predicted=[]
@@ -147,16 +148,17 @@ class DECAY_RNN_Model(object):
                 for i in range(len_X_testing):
                     x_test =  X_testing_perFile[i]
                     x_test = torch.tensor(x_test, dtype=torch.long)
-                    pred, hidden, output = self.model(x_test)
+                    pred, _, all_output = self.model(x_test)
                     if pred[0][0]> pred[0][1]:
                         predicted.append(0)
                     else:
                         predicted.append(1)
-            testing_result[files] = (Y_testing_perFile, predicted, np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing, len_X_testing)
             acc = np.sum(np.asarray(Y_testing_perFile)==np.asarray(predicted))/len_X_testing
+            testing_result[files] = (Y_testing_perFile, predicted, acc, len_X_testing)
+            waveform_dump_dict[files] = (X_sentences, Y_testing_perFile, predicted, all_output)
             print(str(acc)+" "+str(len_X_testing))
 
-        return testing_result
+        return testing_result, waveform_dump_dict
     
     def load_external_testing(self, filename, save_processed_data = True):
         ex_list = []
@@ -190,8 +192,49 @@ class DECAY_RNN_Model(object):
                 pickle_out = open(os.path.join("Testing_data", str(keys))+".pkl", "wb")
                 pickle.dump(final_dict_testing[keys], pickle_out)
 
-        results = self.external_testing(final_dict_testing)
+        results, waveform_dump_dict = self.external_testing(final_dict_testing)
         self.external_result_logger(results)
+        dump_template_waveforms(waveform_dump_dict)
+
+    def external_template_waveform(self, filename, save_processed_data = True):
+        value = lambda key : int(key.split("_")[0]!="sing")
+        ex_list = []    #specialized method for waveforms visualizations 
+        for files in os.listdir(filename):
+            loaded_template = pickle.load(open(os.path.join(filename, files), 'rb'))
+            ex_list.append((loaded_template, files))
+        test_example={}
+        for i in range(len(ex_list)):
+            for keys in ex_list[i][0].keys():
+                list1= ex_list[i][0][keys]
+                if len(list1[0]) > 2:     #ignoring the 3 tuples in the templates 
+                    continue
+                if (ex_list[i][1], keys) in test_example.keys():    # this just means if (file, singular) is a key to test_example dictionary, if not then initialize the key 
+                    pass
+                else:
+                    test_example[(ex_list[i][1], keys)]=[]
+                for X in list1:            
+                    x, _ = X   
+                    # x = correct sentence, x_neg is ungrammatical sentence due to inflection (but for pvn we need to focus only on grammatical sentence)
+                    # note that for pvn task, where we want to make the waveforms, here the label will be 0 for singulars and 1 for plural 
+                    test_example[(ex_list[i][1], keys)].append((x, value(keys)))   # we need to by pass this step for y waveform construction
+        external_testing_dict={}
+        for keys in test_example.keys():
+            x_test_, y_test_ = zip(*test_example[keys])
+            external_testing_dict[keys] = (x_test_, y_test_)
+        
+    # At this time we have a dictionary that has key -->(filename, property) and value a tuple  (X_test(string form), y_test)
+
+        final_dict_testing = self.valid_input(external_testing_dict)
+
+        if save_processed_data:
+            os.mkdir("Testing_data")
+            for keys in final_dict_testing.keys():
+                pickle_out = open(os.path.join("Testing_data", str(keys))+".pkl", "wb")     
+                pickle.dump(final_dict_testing[keys], pickle_out)
+
+        results, waveform_dump_dict = self.external_testing(final_dict_testing)
+        self.external_result_logger(results)
+        dump_template_waveforms(waveform_dump_dict)
 
 
     def valid_input(self,  external_testing_dict):
@@ -199,13 +242,14 @@ class DECAY_RNN_Model(object):
         for keys in external_testing_dict.keys():
             x = []
             y = []
+            x_sentences = []
             X_test, Y_test = external_testing_dict[keys]
             for i in range(len(X_test)):
                 x_ex = []
                 flag=True
                 example = X_test[i]
                 token_list = example.split()
-                if len(token_list)>self.maxlen:
+                if len(token_list)>self.maxlen:   #ignore big sentences than max len 
                     continue
                 for tokens in token_list:
                     if not tokens in self.vocab_to_ints.keys():   #if unknown character, leave the example 
@@ -215,9 +259,11 @@ class DECAY_RNN_Model(object):
                 if not flag:
                     continue
                 x.append(x_ex)
+                x_sentences.append(X_test[i])
                 y.append(Y_test[i])
 
-            final_dict_testing[keys]=(x, y)
+            final_dict_testing[keys]=(x_sentences, x, y)
+            assert len(x_sentences) == len(x) == len(y), "assert failed! length of sentences is different from length of actual testing sentence per template per sing/plur"
         return final_dict_testing
 
 ##########################################################

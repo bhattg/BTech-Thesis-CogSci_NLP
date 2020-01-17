@@ -34,10 +34,13 @@ def zread(fname):
         yield line
     p.wait()
 
-def dump_dict_to_csv(dictionary):
+def dump_dict_to_csv(dictionary, time_stamp_outputs=False):
     for key in dictionary.keys():
-        X_IN, Y_IN, Y_PRED = zip(*dictionary[key])
-        dump_to_csv(list(X_IN), list(Y_IN), list(Y_PRED), name="Dumped_csv_"+str(key)+".csv")
+        if not time_stamp_outputs:
+            X_IN, Y_IN, Y_PRED = zip(*dictionary[key])
+        else:
+            X_IN, Y_IN, Y_PRED, Y_OUT_FULL = zip(*dictionary[key])
+        dump_to_csv(list(X_IN), list(Y_IN), list(Y_PRED), Y_OUT_FULL=list(Y_OUT_FULL), name="Dumped_csv_"+str(key)+".csv")
 
 
 def tokenize_blanks(fh):
@@ -150,13 +153,27 @@ def annotate_relpron(df):
     df['condition'] = df.apply(g, axis=1)
     return df
     
-def dump_to_csv(X_IN, Y_IN, Y_PRED, name="Dumped_csv.csv"):
+def dump_to_csv(X_IN, Y_IN, Y_PRED, Y_OUT_FULL=None, name="Dumped_csv.csv"):
     #X_IN list of inputs
     #Y_IN input labels (not ints but full) list
     #Y_RRED pred lables list
     df_list = []
-
     for i in range(len((X_IN))):
-        df_list.append({"Input sentence":X_IN[i], "Correct output":Y_IN[i], "predicted_output":Y_PRED[i]})
+        if  Y_OUT_FULL == None:
+            df_list.append({"Input sentence":X_IN[i], "Correct output":Y_IN[i], "predicted_output":Y_PRED[i]})
+        else:
+            df_list.append({"Input sentence":X_IN[i], "Correct output":Y_IN[i], "predicted_output":Y_PRED[i], "Time stamp outputs": Y_OUT_FULL[i]})
+    df = pd.DataFrame(df_list)
+    df.to_csv(name)
+
+def dump_template_waveforms(dictionary, model_prefix="model_task"):
+    for key in dictionary.keys():
+        X_IN, Y_IN, Y_OUT_FULL = dictionary[key]
+        dump_to_csv_template(list(X_IN), list(Y_IN), list(Y_OUT_FULL), name="Dumped_csv_"+str(key)+".csv")
+
+def dump_to_csv_template(X_IN, Y_IN, Y_OUT_FULL, name="Dumped_csv.csv"):
+    df_list = []
+    for i in range(len((X_IN))):
+        df_list.append({"Input sentence":X_IN[i], "Correct output":Y_IN[i], "Time stamp outputs": Y_OUT_FULL[i]})
     df = pd.DataFrame(df_list)
     df.to_csv(name)

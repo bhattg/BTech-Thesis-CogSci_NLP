@@ -135,7 +135,10 @@ class LSTM(nn.Module):
                 state = cell(input_ = self.embedding_layer(input_[time]), hx = state)
                 all_hidden.append(state.tolist())
                 out = self.linear(state)
-                all_outputs.append(out.tolist())
+                if out[0]>out[1]:
+                    all_outputs.append(0)
+                else:
+                    all_outputs.append(1)
         
         hlast = state
         softmax_out = self.linear(hlast)
